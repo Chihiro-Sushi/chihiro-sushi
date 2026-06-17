@@ -1,11 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import {
-  collection,
-  query, orderBy, onSnapshot,
-} from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Categoria, MenuItem, Variante } from '@/types'
 import {
   Plus, Edit2, Trash2, Loader2, X, Check, Upload,
@@ -79,25 +74,27 @@ export default function MenuAdminPage() {
   const [categoriaExpandida, setCategoriaExpandida] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  /* ── realtime ── */
-  useEffect(() => {
-    const unsubCat = onSnapshot(
-      query(collection(db, 'menu_categorias'), orderBy('orden')),
-      (snap) => {
-        const cats = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Categoria))
-        setCategorias(cats)
-        setCategoriaExpandida((prev) => prev ?? cats[0]?.id ?? null)
-      }
-    )
-    const unsubItems = onSnapshot(
-      query(collection(db, 'menu_items'), orderBy('orden')),
-      (snap) => {
-        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as MenuItem)))
-        setCargando(false)
-      }
-    )
-    return () => { unsubCat(); unsubItems() }
+  /* ── polling ── */
+  const fetchMenu = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/menu')
+      if (!res.ok) return
+      const data = await res.json()
+      setCategorias(data.categorias as Categoria[])
+      setItems(data.items as MenuItem[])
+      setCategoriaExpandida((prev) => prev ?? data.categorias[0]?.id ?? null)
+    } catch (err) {
+      console.error('[menuAdmin]', err)
+    } finally {
+      setCargando(false)
+    }
   }, [])
+
+  useEffect(() => {
+    fetchMenu()
+    const interval = setInterval(fetchMenu, 5000)
+    return () => clearInterval(interval)
+  }, [fetchMenu])
 
   /* ── imagen ── */
   function cargarImagen(file: File) {
@@ -239,6 +236,7 @@ export default function MenuAdminPage() {
         })
       }
       resetForm()
+      await fetchMenu()
     } finally {
       setGuardando(false)
       setSubiendoImagen(false)
@@ -256,6 +254,7 @@ export default function MenuAdminPage() {
   async function eliminarItem(id: string) {
     if (!confirm('¿Eliminar este platillo?')) return
     await fetch(`/api/admin/menu/${id}`, { method: 'DELETE' })
+    await fetchMenu()
   }
 
   /* ── render ── */
