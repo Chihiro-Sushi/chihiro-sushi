@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, Phone } from 'lucide-react'
 import { useCarrito } from '@/context/CarritoContext'
 
-export default function PedidoConfirmadoPage() {
+function PedidoConfirmadoContent() {
   const searchParams = useSearchParams()
   const pedidoId = searchParams.get('pedidoId')
   const { limpiar } = useCarrito()
@@ -51,5 +51,13 @@ export default function PedidoConfirmadoPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PedidoConfirmadoPage() {
+  return (
+    <Suspense>
+      <PedidoConfirmadoContent />
+    </Suspense>
   )
 }
