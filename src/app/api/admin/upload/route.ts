@@ -12,7 +12,9 @@ export async function POST(req: NextRequest) {
     const fileName = `menu_items/${Date.now()}_${file.name}`
     const token = randomUUID()
 
-    const bucket = getAdminStorage().bucket()
+    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    if (!bucketName) return Response.json({ error: 'Storage bucket not configured' }, { status: 500 })
+    const bucket = getAdminStorage().bucket(bucketName)
     const fileRef = bucket.file(fileName)
 
     await fileRef.save(buffer, {
