@@ -250,6 +250,7 @@ export default function MenuAdminPage() {
     } catch (err) {
       console.error('[guardarItem]', err)
       mostrarToast(`Error: ${err instanceof Error ? err.message : 'No se pudo guardar'}`)
+      setImagenFile(null)
     } finally {
       setGuardando(false)
       setSubiendoImagen(false)
