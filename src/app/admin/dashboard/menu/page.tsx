@@ -5,8 +5,7 @@ import {
   collection, addDoc, updateDoc, deleteDoc, doc,
   query, orderBy, onSnapshot,
 } from 'firebase/firestore'
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { db, storage } from '@/lib/firebase'
+import { db } from '@/lib/firebase'
 import type { Categoria, MenuItem, Variante } from '@/types'
 import {
   Plus, Edit2, Trash2, Loader2, X, Check, Upload,
@@ -211,9 +210,12 @@ export default function MenuAdminPage() {
 
       if (imagenFile) {
         setSubiendoImagen(true)
-        const sRef = storageRef(storage, `menu_items/${Date.now()}_${imagenFile.name}`)
-        await uploadBytes(sRef, imagenFile)
-        imagenUrl = await getDownloadURL(sRef)
+        const fd = new FormData()
+        fd.append('file', imagenFile)
+        const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error ?? 'Upload failed')
+        imagenUrl = json.url
         setSubiendoImagen(false)
       }
 

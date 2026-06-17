@@ -1,8 +1,10 @@
 import { App, getApps, initializeApp, cert } from 'firebase-admin/app'
 import { getFirestore, Firestore } from 'firebase-admin/firestore'
+import { getStorage, Storage } from 'firebase-admin/storage'
 
 let cachedApp: App | null = null
 let cachedDb: Firestore | null = null
+let cachedStorage: Storage | null = null
 
 function getAdminApp(): App {
   if (cachedApp) return cachedApp
@@ -20,8 +22,15 @@ function getAdminApp(): App {
       clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
       privateKey: privateKey.replace(/\\n/g, '\n'),
     }),
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   })
   return cachedApp
+}
+
+export function getAdminStorage(): Storage {
+  if (cachedStorage) return cachedStorage
+  cachedStorage = getStorage(getAdminApp())
+  return cachedStorage
 }
 
 export function getAdminDb(): Firestore {
