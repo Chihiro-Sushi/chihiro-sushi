@@ -1,6 +1,4 @@
 import { NextRequest } from 'next/server'
-import { randomUUID } from 'crypto'
-import { getAdminStorage } from '@/lib/firebase-admin'
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,24 +6,26 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File | null
     if (!file) return Response.json({ error: 'No file' }, { status: 400 })
 
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const fileName = `menu_items/${Date.now()}_${file.name}`
-    const token = randomUUID()
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET
+    if (!cloudName || !uploadPreset) {
+      return Response.json({ error: 'Cloudinary not configured' }, { status: 500 })
+    }
 
-    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    if (!bucketName) return Response.json({ error: 'Storage bucket not configured' }, { status: 500 })
-    const bucket = getAdminStorage().bucket(bucketName)
-    const fileRef = bucket.file(fileName)
+    const body = new FormData()
+    body.append('file', file)
+    body.append('upload_preset', uploadPreset)
+    body.append('folder', 'menu_items')
 
-    await fileRef.save(buffer, {
-      metadata: {
-        contentType: file.type,
-        metadata: { firebaseStorageDownloadTokens: token },
-      },
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body,
     })
 
-    const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(fileName)}?alt=media&token=${token}`
-    return Response.json({ url: publicUrl })
+    const data = await res.json()
+    if (!res.ok) return Response.json({ error: data.error?.message ?? 'Upload failed' }, { status: 500 })
+
+    return Response.json({ url: data.secure_url })
   } catch (err) {
     console.error('[upload]', err)
     return Response.json({ error: String(err) }, { status: 500 })
