@@ -209,12 +209,20 @@ export default function MenuAdminPage() {
 
       if (imagenFile) {
         setSubiendoImagen(true)
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+        if (!cloudName || !uploadPreset) throw new Error('Cloudinary no configurado')
         const fd = new FormData()
         fd.append('file', imagenFile)
-        const res = await fetch('/api/admin/upload', { method: 'POST', body: fd })
+        fd.append('upload_preset', uploadPreset)
+        fd.append('folder', 'menu_items')
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: 'POST',
+          body: fd,
+        })
         const json = await res.json()
-        if (!res.ok) throw new Error(json.error ?? 'Upload failed')
-        imagenUrl = json.url
+        if (!res.ok) throw new Error(json.error?.message ?? 'Upload fallido')
+        imagenUrl = json.secure_url
         setSubiendoImagen(false)
       }
 
