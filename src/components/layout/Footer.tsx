@@ -39,7 +39,7 @@ export default function Footer() {
             <h3 className="text-blanco font-semibold mb-4">Síguenos</h3>
             <ul className="space-y-2 text-sm text-gris">
               <li>
-                <a href="https://facebook.com/ChihiroSushi" target="_blank" rel="noopener noreferrer"
+                <a href="https://www.facebook.com/profile.php?id=61583605506197" target="_blank" rel="noopener noreferrer"
                   className="hover:text-rojo transition-colors">📘 Chihiro Sushi</a>
               </li>
               <li>
