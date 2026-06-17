@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import {
-  collection, addDoc, updateDoc, deleteDoc, doc,
+  collection,
   query, orderBy, onSnapshot,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -226,9 +226,17 @@ export default function MenuAdminPage() {
       }
 
       if (editandoId) {
-        await updateDoc(doc(db, 'menu_items', editandoId), data)
+        await fetch(`/api/admin/menu/${editandoId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        })
       } else {
-        await addDoc(collection(db, 'menu_items'), { ...data, orden: items.length })
+        await fetch('/api/admin/menu', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...data, orden: items.length }),
+        })
       }
       resetForm()
     } finally {
@@ -247,7 +255,7 @@ export default function MenuAdminPage() {
 
   async function eliminarItem(id: string) {
     if (!confirm('¿Eliminar este platillo?')) return
-    await deleteDoc(doc(db, 'menu_items', id))
+    await fetch(`/api/admin/menu/${id}`, { method: 'DELETE' })
   }
 
   /* ── render ── */

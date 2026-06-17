@@ -11,3 +11,13 @@ export async function PATCH(
   await db.collection('menu_items').doc(id).update(body)
   return Response.json({ ok: true })
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const db = getAdminDb()
+  await db.collection('menu_items').doc(id).delete()
+  return Response.json({ ok: true })
+}
