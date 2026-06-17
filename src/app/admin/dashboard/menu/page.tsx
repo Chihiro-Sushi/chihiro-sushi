@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Categoria, MenuItem, Variante } from '@/types'
+import { useToast } from '@/context/ToastContext'
 import {
   Plus, Edit2, Trash2, Loader2, X, Check, Upload,
   ImageIcon, Tag, Layers, ChevronDown, ChevronUp,
@@ -73,6 +74,7 @@ export default function MenuAdminPage() {
 
   const [categoriaExpandida, setCategoriaExpandida] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { mostrarToast } = useToast()
 
   /* ── polling ── */
   const fetchMenu = useCallback(async () => {
@@ -222,21 +224,32 @@ export default function MenuAdminPage() {
         variantes: (formItem.variantes ?? []).filter((v) => v.nombre.trim() !== ''),
       }
 
+      let res: Response
       if (editandoId) {
-        await fetch(`/api/admin/menu/${editandoId}`, {
+        res = await fetch(`/api/admin/menu/${editandoId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         })
       } else {
-        await fetch('/api/admin/menu', {
+        res = await fetch('/api/admin/menu', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...data, orden: items.length }),
         })
       }
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error ?? `Error ${res.status}`)
+      }
+
       resetForm()
       await fetchMenu()
+      mostrarToast(editandoId ? '✓ Cambios guardados' : '✓ Platillo creado')
+    } catch (err) {
+      console.error('[guardarItem]', err)
+      mostrarToast(`Error: ${err instanceof Error ? err.message : 'No se pudo guardar'}`)
     } finally {
       setGuardando(false)
       setSubiendoImagen(false)
