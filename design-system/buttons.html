@@ -1,0 +1,87 @@
+<!-- @dsCard group="Components" name="Botones" subtitle="Primario · Secundario · Deshabilitado · Éxito" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0A0A0A; font-family: system-ui, sans-serif; padding: 28px; }
+  .section { margin-bottom: 24px; }
+  .label { color: rgba(156,163,175,0.5); font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .meta { color: rgba(156,163,175,0.4); font-size: 10px; margin-top: 8px; font-family: monospace; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.15s; }
+  .btn-sm { font-size: 12px; padding: 6px 12px; }
+  .btn-lg { font-size: 15px; font-weight: 600; padding: 12px 24px; }
+  .btn-full { width: 100%; justify-content: center; }
+
+  .btn-primary { background: #C0392B; color: #F5F5F5; }
+  .btn-primary:hover { background: rgba(192,57,43,0.8); }
+
+  .btn-ghost { background: transparent; color: #9CA3AF; border: 1px solid rgba(255,255,255,0.1); }
+  .btn-ghost:hover { border-color: rgba(192,57,43,0.5); color: #F5F5F5; }
+
+  .btn-success { background: #16a34a; color: #F5F5F5; }
+  .btn-disabled { background: rgba(255,255,255,0.05); color: rgba(156,163,175,0.4); cursor: not-allowed; }
+
+  .btn-outline-rojo { background: transparent; color: #C0392B; border: 1.5px solid #C0392B; }
+
+  .divider { height: 1px; background: rgba(255,255,255,0.05); margin: 4px 0 14px; }
+</style>
+</head>
+<body>
+  <div class="section">
+    <div class="label">Primario — Agregar al carrito</div>
+    <div class="row">
+      <button class="btn btn-sm btn-primary">+ Agregar</button>
+      <button class="btn btn-primary">+ Agregar al carrito</button>
+      <button class="btn btn-lg btn-primary" style="width:100%">+ Agregar al carrito</button>
+    </div>
+    <div class="meta">bg: #C0392B · text: #F5F5F5 · rounded-lg · font-medium</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">Éxito — Confirmación</div>
+    <div class="row">
+      <button class="btn btn-success" style="width:100%">✓ Agregado</button>
+    </div>
+    <div class="meta">bg: #16a34a — aparece 1.8s tras agregar</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">Deshabilitado</div>
+    <div class="row">
+      <button class="btn btn-disabled" style="width:100%">Elige 2 proteínas más</button>
+    </div>
+    <div class="meta">bg: rgba(255,255,255,0.05) · color: rgba(gris, 40%)</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">Ghost / Secundario</div>
+    <div class="row">
+      <button class="btn btn-ghost">Elige una opción ∨</button>
+      <button class="btn btn-ghost btn-sm">Cancelar</button>
+      <button class="btn btn-outline-rojo">Ver menú completo</button>
+    </div>
+    <div class="meta">border: rgba(255,255,255,0.1) · hover: border-rojo/50</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">Pill / Tag interactivo (Variantes)</div>
+    <div class="row">
+      <button style="font-size:12px;padding:6px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.1);background:transparent;color:#9CA3AF;">Sin empanizar</button>
+      <button style="font-size:12px;padding:6px 12px;border-radius:8px;border:1.5px solid #C0392B;background:rgba(192,57,43,0.1);color:#C0392B;">Empanizar +$10</button>
+    </div>
+    <div class="meta">Selector de variantes en ItemCard</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!-- @dsCard group="Components" name="Tarjeta de Platillo" subtitle="Sin variantes · Con variantes · Hover" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0A0A0A; font-family: system-ui, sans-serif; padding: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .label { color: rgba(156,163,175,0.5); font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+
+  .card { background: #141414; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; }
+  .card-hover { background: #141414; border: 1px solid rgba(192,57,43,0.3); border-radius: 12px; overflow: hidden; }
+  .card-body { padding: 16px; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .item-name { color: #F5F5F5; font-weight: 600; font-size: 14px; line-height: 1.3; }
+  .item-name-hover { color: #C0392B; font-weight: 600; font-size: 14px; line-height: 1.3; }
+  .item-desc { color: #9CA3AF; font-size: 12px; margin-top: 4px; line-height: 1.6; }
+  .item-price { color: #C0392B; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+  .chip { display: inline-block; font-size: 11px; background: rgba(192,57,43,0.1); color: #C0392B; padding: 2px 8px; border-radius: 9999px; margin-top: 6px; }
+  .btn-add { margin-top: 12px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; background: #C0392B; color: #F5F5F5; font-size: 14px; font-weight: 500; padding: 8px; border-radius: 8px; border: none; }
+  .variant-btn { font-size: 11px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #9CA3AF; margin-right: 4px; margin-top: 4px; }
+  .variant-btn-sel { font-size: 11px; padding: 6px 10px; border-radius: 8px; border: 1.5px solid #C0392B; background: rgba(192,57,43,0.1); color: #C0392B; margin-right: 4px; margin-top: 4px; }
+  .variants-label { color: #9CA3AF; font-size: 11px; margin-top: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <!-- Card 1: Simple sin variantes -->
+    <div>
+      <div class="label">Sin variantes</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="card-header">
+            <div>
+              <div class="item-name">Miso Soup</div>
+              <div class="item-desc">Sopa tradicional japonesa con tofu, wakame y cebollín</div>
+            </div>
+            <div class="item-price">$65</div>
+          </div>
+          <button class="btn-add">+ Agregar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Con variantes expandidas -->
+    <div>
+      <div class="label">Con variantes (expandidas)</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="card-header">
+            <div>
+              <div class="item-name">California Roll</div>
+              <div class="item-desc">PD: Surimi, pepino, aguacate<br>PF: Ajonjolí</div>
+            </div>
+            <div class="item-price">$160</div>
+          </div>
+          <div class="variants-label">Empanizar ∨</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;">
+            <button class="variant-btn">Sin empanizar</button>
+            <button class="variant-btn-sel">Empanizar <span style="color:rgba(192,57,43,0.7)">+$10</span></button>
+          </div>
+          <button class="btn-add" style="margin-top:12px;">+ Agregar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Hover state + etiqueta -->
+    <div>
+      <div class="label">Hover + Etiqueta</div>
+      <div class="card-hover">
+        <div class="card-body">
+          <div class="card-header">
+            <div>
+              <div class="item-name-hover">Gyoza Frita</div>
+              <div class="item-desc">6 piezas de gyoza de cerdo con salsa ponzu</div>
+              <span class="chip">Picante</span>
+            </div>
+            <div class="item-price">$120</div>
+          </div>
+          <button class="btn-add">+ Agregar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

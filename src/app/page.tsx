@@ -1,0 +1,183 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import Image from 'next/image'
+import { ChevronDown, AlertCircle } from 'lucide-react'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import CategoriaNav from '@/components/menu/CategoriaNav'
+import ItemCard from '@/components/menu/ItemCard'
+import ArmaRolloCard from '@/components/menu/ArmaRolloCard'
+import { useMenu } from '@/hooks/useMenu'
+
+const HERO_IMAGES = [
+  '/images/04032026-_DSC4775.jpg',
+  '/images/31012026-_DSC2581.jpg',
+  '/images/01022026-_DSC2652.jpg',
+]
+
+export default function HomePage() {
+  const { categorias, itemsPorCategoria, cargando, error } = useMenu()
+  const [categoriaActiva, setCategoriaActiva] = useState<string>('')
+  const catRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  function scrollACategoria(id: string) {
+    setCategoriaActiva(id)
+    catRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  if (!categoriaActiva && categorias.length > 0) {
+    setCategoriaActiva(categorias[0].id)
+  }
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: '#0A0A0A' }}>
+      <Navbar />
+
+      {/* Hero */}
+      <section className="relative flex items-center justify-center overflow-hidden" style={{ height: '90vh', minHeight: 500 }}>
+        <Image
+          src={HERO_IMAGES[0]}
+          alt="Chihiro Sushi"
+          fill
+          className="object-cover"
+          style={{ filter: 'brightness(0.4)' }}
+          priority
+        />
+        <div className="relative z-10 text-center px-4 fade-up">
+          <h1 className="font-black tracking-tight mb-4" style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>
+            <span style={{ color: '#C0392B' }}>CHIHIRO</span>{' '}
+            <span style={{ color: '#F5F5F5' }}>SUSHI</span>
+          </h1>
+          <p style={{ color: '#9CA3AF', fontSize: '1.125rem', marginBottom: 8 }}>
+            ¡Un viaje de sabor en cada bocado!
+          </p>
+          <p style={{ color: '#9CA3AF', opacity: 0.6, fontSize: '0.875rem', marginBottom: 32 }}>
+            Cocina Japonesa Fusión · Delivery a todo Playa del Carmen
+          </p>
+          <div className="inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-full mb-8 bounce-soft"
+            style={{ backgroundColor: 'rgba(192,57,43,0.9)', color: '#F5F5F5', boxShadow: '0 8px 24px rgba(192,57,43,0.3)' }}>
+            🎉 3×2 todos los días — Sopas, Rollos, Yakimeshis, Pastas y Kushiages
+          </div>
+          <div className="flex flex-col items-center">
+            <a href="#menu" style={{ color: '#9CA3AF' }}>
+              <ChevronDown size={32} className="animate-bounce" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Galería */}
+      <section id="nosotros" className="py-12" style={{ backgroundColor: '#141414' }}>
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-3 gap-3">
+            {HERO_IMAGES.map((src, i) => (
+              <div key={i} className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '1/1' }}>
+                <Image src={src} alt="Chihiro Sushi" fill className="object-cover hover:scale-105 transition-transform duration-500" />
+              </div>
+            ))}
+          </div>
+          <p className="text-center mt-8 text-sm max-w-md mx-auto" style={{ color: '#9CA3AF' }}>
+            En nuestra cocina nos tomamos muy en serio la seguridad alimentaria.
+            Si tienes alguna alergia, infórmanos antes de realizar tu pedido.
+          </p>
+        </div>
+      </section>
+
+      {/* Menú */}
+      <section id="menu" className="py-10">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-3xl font-black mb-1" style={{ color: '#F5F5F5' }}>
+            Nuestro <span style={{ color: '#C0392B' }}>Menú</span>
+          </h2>
+          <p className="text-sm mb-6" style={{ color: '#9CA3AF' }}>
+            Solo disponible en delivery · Lun–Dom 13:00–23:00 hrs
+          </p>
+
+          {cargando ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <div className="w-10 h-10 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C0392B', borderTopColor: 'transparent' }} />
+              <p className="text-sm" style={{ color: '#9CA3AF' }}>Cargando menú...</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+              <AlertCircle size={40} style={{ color: '#C0392B', opacity: 0.6 }} />
+              <p style={{ color: '#9CA3AF' }}>No se pudo cargar el menú. Verifica tu conexión.</p>
+            </div>
+          ) : categorias.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+              <AlertCircle size={40} style={{ color: '#9CA3AF', opacity: 0.4 }} />
+              <p style={{ color: '#9CA3AF' }}>El menú no está disponible en este momento.</p>
+            </div>
+          ) : (
+            <>
+              <div className="sticky top-16 z-30 backdrop-blur py-3 -mx-4 px-4 mb-6"
+                style={{ backgroundColor: 'rgba(10,10,10,0.95)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <CategoriaNav
+                  categorias={categorias}
+                  activa={categoriaActiva}
+                  onSeleccionar={scrollACategoria}
+                />
+              </div>
+
+              <div className="space-y-12">
+                {categorias.map((cat) => {
+                  const items = itemsPorCategoria(cat.id)
+                  if (items.length === 0) return null
+                  return (
+                    <div key={cat.id} ref={(el) => { catRefs.current[cat.id] = el }} className="scroll-mt-36">
+                      <div className="flex items-center gap-3 mb-3">
+                        {cat.icono && <span className="text-2xl">{cat.icono}</span>}
+                        <h3 className="text-xl font-bold" style={{ color: '#F5F5F5' }}>{cat.nombre}</h3>
+                        <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(192,57,43,0.2)' }} />
+                        <span className="text-xs" style={{ color: 'rgba(156,163,175,0.5)' }}>{items.length} opciones</span>
+                      </div>
+                      {(cat.id === 'rollos_frios' || cat.id === 'rollos_calientes') && (
+                        <div className="flex items-center gap-3 mb-5">
+                          <span className="text-xs px-2.5 py-1 rounded-full font-medium"
+                            style={{ backgroundColor: 'rgba(192,57,43,0.1)', color: '#C0392B', border: '1px solid rgba(192,57,43,0.25)' }}>
+                            10 piezas por rollo
+                          </span>
+                          <span className="text-xs" style={{ color: 'rgba(156,163,175,0.5)' }}>
+                            PD: Por Dentro · PF: Por Fuera
+                          </span>
+                        </div>
+                      )}
+                      <div className={cat.id === 'arma_tu_rollo' ? '' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}>
+                        {items.map((item) =>
+                          cat.id === 'arma_tu_rollo'
+                            ? <ArmaRolloCard key={item.id} item={item} />
+                            : <ItemCard key={item.id} item={item} />
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Fotos adicionales */}
+      <section className="py-10" style={{ backgroundColor: '#141414' }}>
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              '/images/31012026-_DSC2438.jpg',
+              '/images/01022026-_DSC2616.jpg',
+              '/images/01022026-_DSC2637.jpg',
+              '/images/04032026-_DSC4809.jpg',
+            ].map((src, i) => (
+              <div key={i} className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '1/1' }}>
+                <Image src={src} alt="Chihiro Sushi" fill className="object-cover hover:scale-105 transition-transform duration-500" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  )
+}

@@ -1,0 +1,124 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { X, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
+import { useCarrito } from '@/context/CarritoContext'
+
+interface Props {
+  abierto: boolean
+  onCerrar: () => void
+}
+
+export default function CarritoDrawer({ abierto, onCerrar }: Props) {
+  const { items, total, agregar, quitar, eliminar, cantidad } = useCarrito()
+  const router = useRouter()
+
+  function irACheckout() {
+    onCerrar()
+    router.push('/checkout')
+  }
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        onClick={onCerrar}
+        className={`fixed inset-0 bg-negro/70 z-50 transition-opacity duration-300 ${
+          abierto ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      />
+
+      {/* Panel lateral */}
+      <div
+        className={`fixed right-0 top-0 h-full w-full max-w-sm bg-carbon z-50 flex flex-col shadow-2xl transition-transform duration-300 ${
+          abierto ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-blanco/10">
+          <div className="flex items-center gap-2">
+            <ShoppingBag size={20} className="text-rojo" />
+            <h2 className="text-blanco font-semibold">
+              Tu pedido {cantidad > 0 && <span className="text-rojo">({cantidad})</span>}
+            </h2>
+          </div>
+          <button onClick={onCerrar} className="text-gris hover:text-blanco transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Items */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center gap-3">
+              <ShoppingBag size={48} className="text-gris/30" />
+              <p className="text-gris">Tu carrito está vacío</p>
+              <button onClick={onCerrar} className="text-rojo text-sm hover:underline">
+                Ver el menú
+              </button>
+            </div>
+          ) : (
+            items.map((item, idx) => (
+              <div key={`${item.itemId}-${item.variante}-${idx}`}
+                className="flex items-start gap-3 bg-negro/50 rounded-xl p-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-blanco text-sm font-medium leading-tight">{item.nombre}</p>
+                  {item.variante && (
+                    <p className="text-gris text-xs mt-0.5">{item.variante}</p>
+                  )}
+                  <p className="text-rojo text-sm font-semibold mt-1">
+                    ${item.subtotal.toFixed(2)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => quitar(item.itemId, item.variante)}
+                    className="w-7 h-7 rounded-full bg-blanco/10 flex items-center justify-center hover:bg-rojo/20 transition-colors"
+                  >
+                    <Minus size={12} />
+                  </button>
+                  <span className="text-blanco text-sm w-4 text-center">{item.cantidad}</span>
+                  <button
+                    onClick={() => {
+                      const fakeItem = { id: item.itemId, nombre: item.nombre, precio: item.precioUnitario, variantes: [], disponible: true, orden: 0, categoriaId: '', descripcion: '' }
+                      agregar(fakeItem as any, item.variante)
+                    }}
+                    className="w-7 h-7 rounded-full bg-blanco/10 flex items-center justify-center hover:bg-rojo/20 transition-colors"
+                  >
+                    <Plus size={12} />
+                  </button>
+                  <button
+                    onClick={() => eliminar(item.itemId, item.variante)}
+                    className="w-7 h-7 rounded-full bg-blanco/10 flex items-center justify-center hover:bg-rojo/20 transition-colors ml-1"
+                  >
+                    <Trash2 size={12} className="text-rojo" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Footer */}
+        {items.length > 0 && (
+          <div className="p-4 border-t border-blanco/10 space-y-3">
+            <div className="flex justify-between text-sm text-gris">
+              <span>Subtotal</span>
+              <span className="text-blanco">${total.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-gris/60">
+              <span>Envío</span>
+              <span>Se calcula al confirmar dirección</span>
+            </div>
+            <button
+              onClick={irACheckout}
+              className="w-full bg-rojo hover:bg-rojo/80 text-blanco font-semibold py-3 rounded-xl transition-colors active:scale-95"
+            >
+              Hacer pedido — ${total.toFixed(2)}
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}

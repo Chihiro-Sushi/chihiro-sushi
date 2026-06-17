@@ -1,0 +1,91 @@
+<!-- @dsCard group="Components" name="Badges & Etiquetas" subtitle="Categoría · Info · Promo · Etiquetas de platillo" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0A0A0A; font-family: system-ui, sans-serif; padding: 28px; }
+  .section { margin-bottom: 20px; }
+  .label { color: rgba(156,163,175,0.5); font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .meta { color: rgba(156,163,175,0.4); font-size: 10px; margin-top: 8px; font-family: monospace; }
+  .divider { height: 1px; background: rgba(255,255,255,0.05); margin: 4px 0 16px; }
+</style>
+</head>
+<body>
+
+  <div class="section">
+    <div class="label">Categoría Nav — Tabs</div>
+    <div class="row">
+      <button style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:9999px;background:#C0392B;color:#F5F5F5;border:none;">🍣 Rollos Fríos</button>
+      <button style="font-size:12px;font-weight:500;padding:6px 14px;border-radius:9999px;background:transparent;color:#9CA3AF;border:1px solid rgba(255,255,255,0.1);">🔥 Calientes</button>
+      <button style="font-size:12px;font-weight:500;padding:6px 14px;border-radius:9999px;background:transparent;color:#9CA3AF;border:1px solid rgba(255,255,255,0.1);">🍜 Sopas</button>
+    </div>
+    <div class="meta">Activo: bg-rojo · Inactivo: border-blanco/10</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">Badge informativo — "10 piezas por rollo"</div>
+    <div class="row">
+      <span style="font-size:12px;padding:4px 10px;border-radius:9999px;background:rgba(192,57,43,0.1);color:#C0392B;border:1px solid rgba(192,57,43,0.25);font-weight:500;">10 piezas por rollo</span>
+      <span style="font-size:12px;color:rgba(156,163,175,0.5);">PD: Por Dentro · PF: Por Fuera</span>
+    </div>
+    <div class="meta">Aparece bajo el header de Rollos Fríos y Calientes</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">Banner Promo 3×2</div>
+    <div class="row">
+      <div style="display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;padding:10px 20px;border-radius:9999px;background:rgba(192,57,43,0.9);color:#F5F5F5;box-shadow:0 8px 24px rgba(192,57,43,0.3);">
+        🎉 3×2 todos los días — Sopas, Rollos, Yakimeshis, Pastas y Kushiages
+      </div>
+    </div>
+    <div class="meta">En el hero — bg: rgba(rojo, 90%) · shadow-rojo</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">Etiquetas de platillo (chip)</div>
+    <div class="row">
+      <span style="font-size:12px;background:rgba(192,57,43,0.1);color:#C0392B;padding:2px 8px;border-radius:9999px;">Picante</span>
+      <span style="font-size:12px;background:rgba(192,57,43,0.1);color:#C0392B;padding:2px 8px;border-radius:9999px;">Vegano</span>
+      <span style="font-size:12px;background:rgba(192,57,43,0.1);color:#C0392B;padding:2px 8px;border-radius:9999px;">Sin gluten</span>
+    </div>
+    <div class="meta">bg-rojo/10 · text-rojo · px-2 py-0.5 · rounded-full · text-xs</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">Contador carrito</div>
+    <div class="row">
+      <div style="position:relative;display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5F5F5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        <span style="position:absolute;top:-4px;right:-4px;background:#C0392B;color:#F5F5F5;font-size:10px;font-weight:700;border-radius:9999px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;">3</span>
+      </div>
+    </div>
+    <div class="meta">Badge absoluto -top-1 -right-1 · w-5 h-5 · bg-rojo</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">Contador de selección (Arma Tu Rollo)</div>
+    <div class="row">
+      <span style="font-size:12px;font-weight:500;padding:2px 8px;border-radius:9999px;background:rgba(192,57,43,0.15);color:#C0392B;">2/2</span>
+      <span style="font-size:12px;font-weight:500;padding:2px 8px;border-radius:9999px;background:rgba(255,255,255,0.05);color:#9CA3AF;">1/3</span>
+    </div>
+    <div class="meta">Completo: bg-rojo/15 · text-rojo · Incompleto: bg-blanco/5 · text-gris</div>
+  </div>
+
+</body>
+</html>

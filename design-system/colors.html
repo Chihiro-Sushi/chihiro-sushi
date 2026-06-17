@@ -1,0 +1,95 @@
+<!-- @dsCard group="Foundations" name="Paleta de Colores" subtitle="Rojo · Negro · Carbón · Blanco · Gris" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0A0A0A; font-family: system-ui, sans-serif; padding: 28px; }
+  h1 { color: #F5F5F5; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px; opacity: 0.5; }
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .swatch { border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.07); }
+  .swatch-color { height: 80px; }
+  .swatch-info { padding: 10px 12px; background: #141414; }
+  .swatch-name { color: #F5F5F5; font-size: 11px; font-weight: 600; }
+  .swatch-hex { color: #9CA3AF; font-size: 10px; margin-top: 2px; font-family: monospace; }
+  .swatch-token { color: rgba(156,163,175,0.5); font-size: 9px; margin-top: 2px; }
+</style>
+</head>
+<body>
+  <h1>Paleta de Colores — Chihiro Sushi</h1>
+  <div class="grid">
+    <div class="swatch">
+      <div class="swatch-color" style="background:#C0392B;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Rojo</div>
+        <div class="swatch-hex">#C0392B</div>
+        <div class="swatch-token">rojo / acento principal</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#0A0A0A; border-bottom: 1px solid rgba(255,255,255,0.07);"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Negro</div>
+        <div class="swatch-hex">#0A0A0A</div>
+        <div class="swatch-token">negro / fondo principal</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#141414;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Carbón</div>
+        <div class="swatch-hex">#141414</div>
+        <div class="swatch-token">carbon / fondo tarjetas</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#F5F5F5;"></div>
+      <div class="swatch-info" style="background:#141414;">
+        <div class="swatch-name">Blanco</div>
+        <div class="swatch-hex">#F5F5F5</div>
+        <div class="swatch-token">blanco / texto principal</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#9CA3AF;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Gris</div>
+        <div class="swatch-hex">#9CA3AF</div>
+        <div class="swatch-token">gris / texto secundario</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 24px;">
+    <h1 style="margin-bottom: 14px;">Variaciones del Rojo</h1>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="width:48px;height:48px;border-radius:8px;background:rgba(192,57,43,0.1);border:1px solid rgba(255,255,255,0.05);"></div>
+        <span style="color:#9CA3AF;font-size:9px;">10%</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="width:48px;height:48px;border-radius:8px;background:rgba(192,57,43,0.2);border:1px solid rgba(255,255,255,0.05);"></div>
+        <span style="color:#9CA3AF;font-size:9px;">20%</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="width:48px;height:48px;border-radius:8px;background:rgba(192,57,43,0.3);border:1px solid rgba(255,255,255,0.05);"></div>
+        <span style="color:#9CA3AF;font-size:9px;">30%</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="width:48px;height:48px;border-radius:8px;background:rgba(192,57,43,0.5);border:1px solid rgba(255,255,255,0.05);"></div>
+        <span style="color:#9CA3AF;font-size:9px;">50%</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="width:48px;height:48px;border-radius:8px;background:rgba(192,57,43,0.8);"></div>
+        <span style="color:#9CA3AF;font-size:9px;">80%</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="width:48px;height:48px;border-radius:8px;background:#C0392B;"></div>
+        <span style="color:#9CA3AF;font-size:9px;">100%</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

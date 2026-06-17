@@ -1,0 +1,102 @@
+<!-- @dsCard group="Components" name="Navegación de Categorías" subtitle="Tabs horizontales · scroll snap · activo/inactivo" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0A0A0A; font-family: system-ui, sans-serif; padding: 24px; }
+  .label { color: rgba(156,163,175,0.5); font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .meta { color: rgba(156,163,175,0.4); font-size: 10px; margin-top: 16px; font-family: monospace; line-height: 1.8; }
+  .divider { height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0; }
+
+  .nav-wrapper {
+    background: rgba(10,10,10,0.95);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 12px 0;
+    margin: 0 -24px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .nav-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .nav-scroll::-webkit-scrollbar { display: none; }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+  }
+  .tab-active {
+    background: #C0392B;
+    color: #F5F5F5;
+    font-weight: 600;
+  }
+  .tab-inactive {
+    background: transparent;
+    color: #9CA3AF;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .tab-inactive:hover {
+    border-color: rgba(192,57,43,0.5);
+    color: #F5F5F5;
+  }
+</style>
+</head>
+<body>
+  <div class="label">Barra de categorías — sticky bajo Navbar</div>
+
+  <div class="nav-wrapper">
+    <div class="nav-scroll">
+      <button class="tab tab-active">🍣 Rollos Fríos</button>
+      <button class="tab tab-inactive">🔥 Calientes</button>
+      <button class="tab tab-inactive">🎨 Arma Tu Rollo</button>
+      <button class="tab tab-inactive">🍜 Sopas</button>
+      <button class="tab tab-inactive">🍚 Yakimeshis</button>
+      <button class="tab tab-inactive">🍗 Kushiages</button>
+      <button class="tab tab-inactive">🍝 Pastas</button>
+      <button class="tab tab-inactive">🥤 Bebidas</button>
+      <button class="tab tab-inactive">🧒 Combo Kids</button>
+    </div>
+  </div>
+
+  <div class="meta">
+    Posición: sticky top-16 (bajo navbar) · z-30<br>
+    Fondo: rgba(#0A0A0A, 95%) + backdrop-blur<br>
+    Activo: bg-rojo · font-semibold · text-blanco<br>
+    Inactivo: border-blanco/10 · text-gris<br>
+    Scroll horizontal sin scrollbar visible
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="label">Header de sección de categoría</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+    <span style="font-size:22px;">🍣</span>
+    <h3 style="color:#F5F5F5;font-size:20px;font-weight:700;">Rollos Fríos</h3>
+    <div style="flex:1;height:1px;background:rgba(192,57,43,0.2);"></div>
+    <span style="color:rgba(156,163,175,0.5);font-size:12px;">24 opciones</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span style="font-size:12px;padding:4px 10px;border-radius:9999px;background:rgba(192,57,43,0.1);color:#C0392B;border:1px solid rgba(192,57,43,0.25);font-weight:500;">10 piezas por rollo</span>
+    <span style="font-size:12px;color:rgba(156,163,175,0.5);">PD: Por Dentro · PF: Por Fuera</span>
+  </div>
+
+  <div class="meta">
+    Icono 2xl + H3 xl font-bold + divisor rojo/20 + contador "N opciones"<br>
+    Sub-fila con badge "10 piezas" + glosario PD/PF — solo Rollos Fríos y Calientes
+  </div>
+</body>
+</html>
