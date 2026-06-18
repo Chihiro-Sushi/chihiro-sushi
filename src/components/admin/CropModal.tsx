@@ -13,6 +13,13 @@ interface Props {
   onCancel: () => void
 }
 
+function clampOff(x: number, y: number, s: number, nw: number, nh: number) {
+  return {
+    x: Math.min(0, Math.max(FRAME - nw * s, x)),
+    y: Math.min(0, Math.max(FRAME - nh * s, y)),
+  }
+}
+
 export default function CropModal({ file, onConfirm, onCancel }: Props) {
   const [src, setSrc] = useState('')
   const [nat, setNat] = useState({ w: 0, h: 0 })
@@ -23,18 +30,27 @@ export default function CropModal({ file, onConfirm, onCancel }: Props) {
 
   const imgRef = useRef<HTMLImageElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const drag = useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
-  const pinch = useRef({ dist: 0, midX: 0, midY: 0, ox: 0, oy: 0, z: 1 })
 
-  // Mirrors for non-passive wheel handler (avoids stale closure)
-  const zoomRef = useRef(zoom)
-  const offsetRef = useRef(offset)
-  const natRef = useRef(nat)
-  const baseScaleRef = useRef(baseScale)
+  // Refs en sync con el estado — los event handlers leen de aquí para evitar closures obsoletos
+  const draggingRef = useRef(false)
+  const zoomRef = useRef(1)
+  const offsetRef = useRef({ x: 0, y: 0 })
+  const natRef = useRef({ w: 0, h: 0 })
+  const baseScaleRef = useRef(1)
+
   useEffect(() => { zoomRef.current = zoom }, [zoom])
   useEffect(() => { offsetRef.current = offset }, [offset])
   useEffect(() => { natRef.current = nat }, [nat])
   useEffect(() => { baseScaleRef.current = baseScale }, [baseScale])
+
+  // Helpers para sincronizar ref + estado juntos
+  function setZoomSync(z: number) { zoomRef.current = z; setZoom(z) }
+  function setOffsetSync(o: { x: number; y: number }) { offsetRef.current = o; setOffset(o) }
+
+  // Drag ref
+  const drag = useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
+  // Pinch ref
+  const pinch = useRef({ dist: 0, midX: 0, midY: 0, ox: 0, oy: 0, z: 1 })
 
   useEffect(() => {
     const url = URL.createObjectURL(file)
@@ -42,11 +58,47 @@ export default function CropModal({ file, onConfirm, onCancel }: Props) {
     return () => URL.revokeObjectURL(url)
   }, [file])
 
-  // Non-passive wheel listener (React wheel events are passive by default)
+  const onImgLoad = useCallback(() => {
+    const img = imgRef.current!
+    const nw = img.naturalWidth
+    const nh = img.naturalHeight
+    const s = Math.max(FRAME / nw, FRAME / nh)
+    const initOffset = { x: (FRAME - nw * s) / 2, y: (FRAME - nh * s) / 2 }
+    setNat({ w: nw, h: nh }); natRef.current = { w: nw, h: nh }
+    setBaseScale(s); baseScaleRef.current = s
+    setZoomSync(1)
+    setOffsetSync(initOffset)
+  }, [])
+
+  // ── Todos los event listeners en un solo useEffect con passive:false ──
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const handler = (e: WheelEvent) => {
+
+    // Mouse
+    function onMouseDown(e: MouseEvent) {
+      e.preventDefault()
+      draggingRef.current = true
+      setDragging(true)
+      drag.current = { mx: e.clientX, my: e.clientY, ox: offsetRef.current.x, oy: offsetRef.current.y }
+    }
+    function onMouseMove(e: MouseEvent) {
+      if (!draggingRef.current) return
+      const s = baseScaleRef.current * zoomRef.current
+      const { w, h } = natRef.current
+      setOffsetSync(clampOff(
+        drag.current.ox + e.clientX - drag.current.mx,
+        drag.current.oy + e.clientY - drag.current.my,
+        s, w, h
+      ))
+    }
+    function onMouseUp() {
+      draggingRef.current = false
+      setDragging(false)
+    }
+
+    // Wheel
+    function onWheel(e: WheelEvent) {
       e.preventDefault()
       const rect = el.getBoundingClientRect()
       const ax = e.clientX - rect.left
@@ -55,117 +107,130 @@ export default function CropModal({ file, onConfirm, onCancel }: Props) {
       const z = zoomRef.current
       const o = offsetRef.current
       const bs = baseScaleRef.current
-      const n = natRef.current
-      const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z * factor))
+      const { w, h } = natRef.current
+      const newZ = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z * factor))
       const curS = bs * z
-      const newS = bs * newZoom
+      const newS = bs * newZ
       const imgX = (ax - o.x) / curS
       const imgY = (ay - o.y) / curS
-      setZoom(newZoom)
-      setOffset({
-        x: Math.min(0, Math.max(FRAME - n.w * newS, ax - imgX * newS)),
-        y: Math.min(0, Math.max(FRAME - n.h * newS, ay - imgY * newS)),
-      })
+      setZoomSync(newZ)
+      setOffsetSync(clampOff(ax - imgX * newS, ay - imgY * newS, newS, w, h))
     }
-    el.addEventListener('wheel', handler, { passive: false })
-    return () => el.removeEventListener('wheel', handler)
+
+    // Touch
+    function getTwoTouchDist(t: TouchList) {
+      return Math.hypot(t[1].clientX - t[0].clientX, t[1].clientY - t[0].clientY)
+    }
+    function getTwoTouchMid(t: TouchList, rect: DOMRect) {
+      return {
+        x: (t[0].clientX + t[1].clientX) / 2 - rect.left,
+        y: (t[0].clientY + t[1].clientY) / 2 - rect.top,
+      }
+    }
+
+    function onTouchStart(e: TouchEvent) {
+      e.preventDefault()
+      if (e.touches.length === 1) {
+        draggingRef.current = true
+        setDragging(true)
+        drag.current = {
+          mx: e.touches[0].clientX,
+          my: e.touches[0].clientY,
+          ox: offsetRef.current.x,
+          oy: offsetRef.current.y,
+        }
+      } else if (e.touches.length === 2) {
+        draggingRef.current = false
+        setDragging(false)
+        const rect = el.getBoundingClientRect()
+        const mid = getTwoTouchMid(e.touches, rect)
+        pinch.current = {
+          dist: getTwoTouchDist(e.touches),
+          midX: mid.x,
+          midY: mid.y,
+          ox: offsetRef.current.x,
+          oy: offsetRef.current.y,
+          z: zoomRef.current,
+        }
+      }
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      e.preventDefault()
+      if (e.touches.length === 1 && draggingRef.current) {
+        const s = baseScaleRef.current * zoomRef.current
+        const { w, h } = natRef.current
+        setOffsetSync(clampOff(
+          drag.current.ox + e.touches[0].clientX - drag.current.mx,
+          drag.current.oy + e.touches[0].clientY - drag.current.my,
+          s, w, h
+        ))
+      } else if (e.touches.length === 2) {
+        const rect = el.getBoundingClientRect()
+        const { w, h } = natRef.current
+        const bs = baseScaleRef.current
+        const newDist = getTwoTouchDist(e.touches)
+        const newMid = getTwoTouchMid(e.touches, rect)
+        const { dist, midX, midY, ox, oy, z } = pinch.current
+        const newZ = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z * (newDist / dist)))
+        const oldS = bs * z
+        const newS = bs * newZ
+        const imgX = (midX - ox) / oldS
+        const imgY = (midY - oy) / oldS
+        setZoomSync(newZ)
+        setOffsetSync(clampOff(newMid.x - imgX * newS, newMid.y - imgY * newS, newS, w, h))
+      }
+    }
+
+    function onTouchEnd() {
+      draggingRef.current = false
+      setDragging(false)
+    }
+
+    el.addEventListener('mousedown', onMouseDown)
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+    el.addEventListener('wheel', onWheel, { passive: false })
+    el.addEventListener('touchstart', onTouchStart, { passive: false })
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    el.addEventListener('touchend', onTouchEnd)
+
+    return () => {
+      el.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+      el.removeEventListener('wheel', onWheel)
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchmove', onTouchMove)
+      el.removeEventListener('touchend', onTouchEnd)
+    }
   }, [])
 
-  const clamp = useCallback((x: number, y: number, s: number, nw: number, nh: number) => ({
-    x: Math.min(0, Math.max(FRAME - nw * s, x)),
-    y: Math.min(0, Math.max(FRAME - nh * s, y)),
-  }), [])
-
-  const onLoad = useCallback(() => {
-    const img = imgRef.current!
-    const nw = img.naturalWidth
-    const nh = img.naturalHeight
-    const s = Math.max(FRAME / nw, FRAME / nh)
-    setNat({ w: nw, h: nh })
-    setBaseScale(s)
-    setZoom(1)
-    setOffset({ x: (FRAME - nw * s) / 2, y: (FRAME - nh * s) / 2 })
-  }, [])
-
-  // ── Drag ──
-  function startDrag(mx: number, my: number) {
-    setDragging(true)
-    drag.current = { mx, my, ox: offset.x, oy: offset.y }
-  }
-
-  function moveDrag(mx: number, my: number) {
-    if (!dragging) return
-    const s = baseScale * zoom
-    setOffset(clamp(
-      drag.current.ox + mx - drag.current.mx,
-      drag.current.oy + my - drag.current.my,
-      s, nat.w, nat.h
-    ))
-  }
-
-  // ── Zoom buttons ──
+  // ── Botones de zoom ──
   function zoomStep(dir: 1 | -1) {
-    const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * (dir > 0 ? 1.25 : 1 / 1.25)))
-    const curS = baseScale * zoom
-    const newS = baseScale * newZoom
+    const z = zoomRef.current
+    const o = offsetRef.current
+    const bs = baseScaleRef.current
+    const { w, h } = natRef.current
+    const newZ = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z * (dir > 0 ? 1.25 : 1 / 1.25)))
+    const curS = bs * z
+    const newS = bs * newZ
     const ax = FRAME / 2
     const ay = FRAME / 2
-    const imgX = (ax - offset.x) / curS
-    const imgY = (ay - offset.y) / curS
-    setZoom(newZoom)
-    setOffset(clamp(ax - imgX * newS, ay - imgY * newS, newS, nat.w, nat.h))
-  }
-
-  // ── Pinch (touch) ──
-  function dist2(t: TouchList) {
-    return Math.hypot(t[1].clientX - t[0].clientX, t[1].clientY - t[0].clientY)
-  }
-
-  function mid2(t: TouchList, rect: DOMRect) {
-    return {
-      x: (t[0].clientX + t[1].clientX) / 2 - rect.left,
-      y: (t[0].clientY + t[1].clientY) / 2 - rect.top,
-    }
-  }
-
-  function onTouchStart(e: React.TouchEvent) {
-    e.preventDefault()
-    if (e.touches.length === 1) {
-      startDrag(e.touches[0].clientX, e.touches[0].clientY)
-    } else if (e.touches.length === 2) {
-      setDragging(false)
-      const rect = containerRef.current!.getBoundingClientRect()
-      const m = mid2(e.touches, rect)
-      pinch.current = { dist: dist2(e.touches), midX: m.x, midY: m.y, ox: offset.x, oy: offset.y, z: zoom }
-    }
-  }
-
-  function onTouchMove(e: React.TouchEvent) {
-    e.preventDefault()
-    if (e.touches.length === 1 && dragging) {
-      moveDrag(e.touches[0].clientX, e.touches[0].clientY)
-    } else if (e.touches.length === 2) {
-      const rect = containerRef.current!.getBoundingClientRect()
-      const newDist = dist2(e.touches)
-      const newMid = mid2(e.touches, rect)
-      const factor = newDist / pinch.current.dist
-      const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pinch.current.z * factor))
-      const oldS = baseScale * pinch.current.z
-      const newS = baseScale * newZoom
-      const imgX = (pinch.current.midX - pinch.current.ox) / oldS
-      const imgY = (pinch.current.midY - pinch.current.oy) / oldS
-      setZoom(newZoom)
-      setOffset(clamp(newMid.x - imgX * newS, newMid.y - imgY * newS, newS, nat.w, nat.h))
-    }
+    const imgX = (ax - o.x) / curS
+    const imgY = (ay - o.y) / curS
+    setZoomSync(newZ)
+    setOffsetSync(clampOff(ax - imgX * newS, ay - imgY * newS, newS, w, h))
   }
 
   // ── Export ──
   function handleConfirm() {
-    if (!nat.w) return
+    if (!natRef.current.w) return
     const img = imgRef.current!
-    const s = baseScale * zoom
-    const srcX = -offset.x / s
-    const srcY = -offset.y / s
+    const s = baseScaleRef.current * zoomRef.current
+    const o = offsetRef.current
+    const srcX = -o.x / s
+    const srcY = -o.y / s
     const srcSize = FRAME / s
     const out = Math.min(900, Math.round(srcSize))
     const canvas = document.createElement('canvas')
@@ -192,7 +257,7 @@ export default function CropModal({ file, onConfirm, onCancel }: Props) {
           <div>
             <h3 className="font-bold text-sm" style={{ color: '#F5F5F5' }}>Ajustar encuadre</h3>
             <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: '#9CA3AF' }}>
-              <Move size={11} /> Arrastra · Rueda del ratón o pellizca para zoom
+              <Move size={11} /> Arrastra · Rueda del ratón · Pellizca en móvil
             </p>
           </div>
           <button onClick={onCancel} className="p-1 hover:opacity-70 transition-opacity">
@@ -215,13 +280,6 @@ export default function CropModal({ file, onConfirm, onCancel }: Props) {
               userSelect: 'none',
               touchAction: 'none',
             }}
-            onMouseDown={(e) => { e.preventDefault(); startDrag(e.clientX, e.clientY) }}
-            onMouseMove={(e) => moveDrag(e.clientX, e.clientY)}
-            onMouseUp={() => setDragging(false)}
-            onMouseLeave={() => setDragging(false)}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={() => setDragging(false)}
           >
             {src && (
               <img
@@ -229,7 +287,7 @@ export default function CropModal({ file, onConfirm, onCancel }: Props) {
                 src={src}
                 alt=""
                 draggable={false}
-                onLoad={onLoad}
+                onLoad={onImgLoad}
                 style={{
                   position: 'absolute',
                   left: offset.x,
