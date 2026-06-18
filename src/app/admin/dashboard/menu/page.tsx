@@ -100,8 +100,6 @@ export default function MenuAdminPage() {
 
   useEffect(() => {
     fetchMenu()
-    const interval = setInterval(fetchMenu, 5000)
-    return () => clearInterval(interval)
   }, [fetchMenu])
 
   /* ── imagen ── */

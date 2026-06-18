@@ -22,7 +22,7 @@ export function usePedidosRealtime(filtroEstado?: EstadoPedido) {
 
   useEffect(() => {
     fetchPedidos()
-    const interval = setInterval(fetchPedidos, 5000)
+    const interval = setInterval(fetchPedidos, 30000)
     return () => clearInterval(interval)
   }, [fetchPedidos])
 
