@@ -1,18 +1,8 @@
+import { unstable_cache } from 'next/cache'
 import { getAdminDb } from '@/lib/firebase-admin'
 
-let cache: { data: unknown; at: number } | null = null
-const TTL = 300_000 // 5 minutos
-
-export async function GET() {
-  try {
-    if (cache && Date.now() - cache.at < TTL) {
-      return new Response(JSON.stringify(cache.data), {
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 's-maxage=300, stale-while-revalidate=60',
-        },
-      })
-    }
+const fetchMenu = unstable_cache(
+  async () => {
     const db = getAdminDb()
     const [catsSnap, itemsSnap] = await Promise.all([
       db.collection('menu_categorias').orderBy('orden').get(),
@@ -22,13 +12,16 @@ export async function GET() {
       .map((d) => ({ id: d.id, ...d.data() }))
       .filter((c) => (c as { activa?: boolean }).activa !== false)
     const items = itemsSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    cache = { data: { categorias, items }, at: Date.now() }
-    return new Response(JSON.stringify(cache.data), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 's-maxage=300, stale-while-revalidate=60',
-      },
-    })
+    return { categorias, items }
+  },
+  ['menu'],
+  { tags: ['menu'], revalidate: 300 }
+)
+
+export async function GET() {
+  try {
+    const data = await fetchMenu()
+    return Response.json(data)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('[GET /api/menu]', msg)
