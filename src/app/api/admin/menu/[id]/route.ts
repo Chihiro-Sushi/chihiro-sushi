@@ -10,7 +10,7 @@ export async function PATCH(
   const body = await req.json()
   const db = getAdminDb()
   await db.collection('menu_items').doc(id).update(body)
-  revalidateTag('menu')
+  revalidateTag('menu', {})
   return Response.json({ ok: true })
 }
 
@@ -21,6 +21,6 @@ export async function DELETE(
   const { id } = await params
   const db = getAdminDb()
   await db.collection('menu_items').doc(id).delete()
-  revalidateTag('menu')
+  revalidateTag('menu', {})
   return Response.json({ ok: true })
 }
