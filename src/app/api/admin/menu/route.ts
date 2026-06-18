@@ -2,14 +2,20 @@ import { NextRequest } from 'next/server'
 import { getAdminDb } from '@/lib/firebase-admin'
 
 export async function GET() {
-  const db = getAdminDb()
-  const [catsSnap, itemsSnap] = await Promise.all([
-    db.collection('menu_categorias').orderBy('orden').get(),
-    db.collection('menu_items').orderBy('orden').get(),
-  ])
-  const categorias = catsSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
-  const items = itemsSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
-  return Response.json({ categorias, items })
+  try {
+    const db = getAdminDb()
+    const [catsSnap, itemsSnap] = await Promise.all([
+      db.collection('menu_categorias').orderBy('orden').get(),
+      db.collection('menu_items').orderBy('orden').get(),
+    ])
+    const categorias = catsSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    const items = itemsSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    return Response.json({ categorias, items })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[GET /api/admin/menu]', msg)
+    return Response.json({ error: msg }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {
