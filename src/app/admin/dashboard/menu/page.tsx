@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Categoria, MenuItem, Variante } from '@/types'
 import { useToast } from '@/context/ToastContext'
+import CropModal from '@/components/admin/CropModal'
 import {
   Plus, Edit2, Trash2, Loader2, X, Check, Upload,
   ImageIcon, Tag, Layers, ChevronDown, ChevronUp,
@@ -71,6 +72,7 @@ export default function MenuAdminPage() {
   const [imagenPreview, setImagenPreview] = useState('')
   const [subiendoImagen, setSubiendoImagen] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  const [cropFile, setCropFile] = useState<File | null>(null)
 
   const [categoriaExpandida, setCategoriaExpandida] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -101,24 +103,14 @@ export default function MenuAdminPage() {
   /* ── imagen ── */
   function cargarImagen(file: File) {
     if (!file.type.startsWith('image/')) return
-    const img = new Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      const MAX = 900
-      const scale = Math.min(1, MAX / Math.max(img.width, img.height))
-      const canvas = document.createElement('canvas')
-      canvas.width = Math.round(img.width * scale)
-      canvas.height = Math.round(img.height * scale)
-      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
-      canvas.toBlob((blob) => {
-        if (!blob) return
-        const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })
-        setImagenFile(compressed)
-        setImagenPreview(canvas.toDataURL('image/jpeg', 0.82))
-        URL.revokeObjectURL(url)
-      }, 'image/jpeg', 0.82)
-    }
-    img.src = url
+    setCropFile(file)
+  }
+
+  function confirmarCrop(cropped: File) {
+    setCropFile(null)
+    setImagenFile(cropped)
+    const url = URL.createObjectURL(cropped)
+    setImagenPreview(url)
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -307,6 +299,15 @@ export default function MenuAdminPage() {
           <Plus size={15} /> Agregar platillo
         </button>
       </div>
+
+      {/* ── CROP MODAL ── */}
+      {cropFile && (
+        <CropModal
+          file={cropFile}
+          onConfirm={confirmarCrop}
+          onCancel={() => setCropFile(null)}
+        />
+      )}
 
       {/* ── MODAL FORM ── */}
       {mostrarForm && (

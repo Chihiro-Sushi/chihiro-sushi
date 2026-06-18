@@ -59,7 +59,7 @@ export default function ItemCard({ item }: Props) {
         </div>
       )}
       {item.imagenUrl && (
-        <div className="w-full h-36 overflow-hidden shrink-0">
+        <div className="w-full aspect-square overflow-hidden shrink-0">
           <img
             src={item.imagenUrl}
             alt={item.nombre}
