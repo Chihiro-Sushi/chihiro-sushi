@@ -294,6 +294,7 @@ export default function CropModal({ file, onConfirm, onCancel }: Props) {
                   top: offset.y,
                   width: nat.w * baseScale * zoom,
                   height: nat.h * baseScale * zoom,
+                  maxWidth: 'none',
                   pointerEvents: 'none',
                 }}
               />
