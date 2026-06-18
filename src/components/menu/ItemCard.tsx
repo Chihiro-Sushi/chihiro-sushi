@@ -58,6 +58,15 @@ export default function ItemCard({ item }: Props) {
           </span>
         </div>
       )}
+      {item.imagenUrl && (
+        <div className="w-full h-36 overflow-hidden shrink-0">
+          <img
+            src={item.imagenUrl}
+            alt={item.nombre}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        </div>
+      )}
       <div className="p-4 flex flex-col flex-1">
         <div className="flex-1">
           <div className="flex justify-between items-start gap-3">
