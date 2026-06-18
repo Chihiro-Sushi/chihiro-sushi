@@ -82,7 +82,11 @@ export default function MenuAdminPage() {
   const fetchMenu = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/menu')
-      if (!res.ok) return
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        mostrarToast(`Error ${res.status}: ${err.error ?? 'No se pudo cargar el menú'}`)
+        return
+      }
       const data = await res.json()
       setCategorias(data.categorias as Categoria[])
       setItems(data.items as MenuItem[])
