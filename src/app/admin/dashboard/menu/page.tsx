@@ -246,8 +246,14 @@ export default function MenuAdminPage() {
         throw new Error(err.error ?? `Error ${res.status}`)
       }
 
+      const json = await res.json()
+      const itemActualizado = { ...data, imagenUrl } as Omit<MenuItem, 'id'>
+      if (editandoId) {
+        setItems((prev) => prev.map((i) => i.id === editandoId ? { ...i, ...itemActualizado } : i))
+      } else {
+        setItems((prev) => [...prev, { id: json.id, ...itemActualizado } as MenuItem])
+      }
       resetForm()
-      await fetchMenu()
       mostrarToast(editandoId ? '✓ Cambios guardados' : '✓ Platillo creado')
     } catch (err) {
       console.error('[guardarItem]', err)
@@ -260,17 +266,19 @@ export default function MenuAdminPage() {
   }
 
   async function toggleDisponible(item: MenuItem) {
+    const next = !item.disponible
+    setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, disponible: next } : i))
     await fetch(`/api/admin/menu/${item.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ disponible: !item.disponible }),
+      body: JSON.stringify({ disponible: next }),
     })
   }
 
   async function eliminarItem(id: string) {
     if (!confirm('¿Eliminar este platillo?')) return
+    setItems((prev) => prev.filter((i) => i.id !== id))
     await fetch(`/api/admin/menu/${id}`, { method: 'DELETE' })
-    await fetchMenu()
   }
 
   /* ── render ── */
