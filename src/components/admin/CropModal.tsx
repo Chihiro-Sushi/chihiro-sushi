@@ -72,8 +72,8 @@ export default function CropModal({ file, onConfirm, onCancel }: Props) {
 
   // ── Todos los event listeners en un solo useEffect con passive:false ──
   useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
+    if (!containerRef.current) return
+    const el = containerRef.current as HTMLDivElement
 
     // Mouse
     function onMouseDown(e: MouseEvent) {
