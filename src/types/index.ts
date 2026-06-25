@@ -51,7 +51,7 @@ export interface Pedido {
   descuento: number
   total: number
   metodoPago: 'efectivo' | 'tarjeta'
-  estado: 'pendiente' | 'en_proceso' | 'en_camino' | 'entregado' | 'cancelado'
+  estado: 'esperando_pago' | 'pendiente' | 'en_proceso' | 'en_camino' | 'entregado' | 'cancelado'
   stripePaymentId?: string
   notas?: string
   creadoEn: Timestamp | string

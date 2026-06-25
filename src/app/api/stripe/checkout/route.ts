@@ -9,10 +9,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
 
-    // Guardar pedido en Firestore con estado 'pendiente' antes del pago
+    // Guardar pedido en Firestore con estado temporal hasta confirmar pago
     const ref = await adminDb.collection('pedidos').add({
       ...body,
-      estado: 'pendiente',
+      estado: 'esperando_pago',
       creadoEn: FieldValue.serverTimestamp(),
       actualizadoEn: FieldValue.serverTimestamp(),
     })

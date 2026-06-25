@@ -49,7 +49,7 @@ export default function ItemCard({ item }: Props) {
   const noDisponible = !item.disponible
 
   return (
-    <div className={`bg-carbon border border-blanco/5 rounded-xl overflow-hidden transition-all duration-200 group relative flex flex-col h-full ${noDisponible ? 'opacity-55' : 'hover:border-rojo/40 hover:scale-[1.02] hover:shadow-xl hover:shadow-rojo/10 hover:z-10'}`}>
+    <div className={`bg-carbon border border-blanco/5 rounded-xl overflow-hidden transition-all duration-200 group relative flex flex-row md:flex-col h-full ${noDisponible ? 'opacity-55' : 'hover:border-rojo/40 hover:scale-[1.02] hover:shadow-xl hover:shadow-rojo/10 hover:z-10'}`}>
       {noDisponible && (
         <div className="absolute top-2.5 right-2.5 z-10">
           <span className="text-xs font-medium px-2 py-0.5 rounded-full"
@@ -59,7 +59,7 @@ export default function ItemCard({ item }: Props) {
         </div>
       )}
       {item.imagenUrl && (
-        <div className="w-full aspect-square overflow-hidden shrink-0">
+        <div className="w-28 md:w-full aspect-square overflow-hidden shrink-0">
           <img
             src={item.imagenUrl}
             alt={item.nombre}
@@ -67,7 +67,7 @@ export default function ItemCard({ item }: Props) {
           />
         </div>
       )}
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-3 md:p-4 flex flex-col flex-1 min-w-0">
         <div className="flex-1">
           <div className="flex justify-between items-start gap-3">
             <div className="flex-1 min-w-0">
