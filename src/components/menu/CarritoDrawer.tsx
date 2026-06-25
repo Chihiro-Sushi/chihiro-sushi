@@ -5,9 +5,24 @@ import { X, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 import { useCarrito } from '@/context/CarritoContext'
 import { clavesConPromocion3x2 } from '@/lib/promociones'
 
+import type { Promocion } from '@/types'
+
 interface Props {
   abierto: boolean
   onCerrar: () => void
+}
+
+function etiquetaDescuento(promociones: Promocion[]): string {
+  const activas = promociones.filter((p) => p.activa)
+  const tipos = [...new Set(activas.map((p) => p.tipo))]
+  if (tipos.length === 0) return 'Promoción'
+  if (tipos.length > 1) return 'Múltiples promociones'
+  const tipo = tipos[0]
+  if (tipo === '3x2') return 'Promo 3×2'
+  const promo = activas.find((p) => p.tipo === tipo)
+  if (tipo === 'porcentaje') return `${promo?.valor ?? ''}% OFF`
+  if (tipo === 'fijo') return `-$${promo?.valor ?? ''} fijo`
+  return 'Promoción'
 }
 
 export default function CarritoDrawer({ abierto, onCerrar }: Props) {
@@ -115,16 +130,26 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
         {/* Footer */}
         {items.length > 0 && (
           <div className="p-4 border-t border-blanco/10 space-y-3">
-            <div className="flex justify-between text-sm text-gris">
-              <span>Subtotal</span>
-              <span className="text-blanco">${total.toFixed(2)}</span>
-            </div>
-            {descuento > 0 && (
-              <div className="flex justify-between text-sm font-medium" style={{ color: '#22C55E' }}>
-                <span>Descuento 3×2</span>
-                <span>-${descuento.toFixed(2)}</span>
+            <div className="flex justify-between items-start">
+              <span className="text-sm text-gris pt-0.5">Subtotal</span>
+              <div className="text-right">
+                {descuento > 0 ? (
+                  <>
+                    <p className="text-sm line-through" style={{ color: '#9CA3AF', opacity: 0.45 }}>
+                      ${total.toFixed(2)}
+                    </p>
+                    <p className="text-lg font-bold leading-tight" style={{ color: '#F5F5F5' }}>
+                      ${totalConDescuento.toFixed(2)}
+                    </p>
+                    <p className="text-xs font-medium mt-0.5" style={{ color: '#22C55E' }}>
+                      Ahorraste ${descuento.toFixed(2)} · {etiquetaDescuento(promocionesActivas)}
+                    </p>
+                  </>
+                ) : (
+                  <span className="text-sm text-blanco">${total.toFixed(2)}</span>
+                )}
               </div>
-            )}
+            </div>
             <div className="flex justify-between text-xs text-gris/60">
               <span>Envío</span>
               <span>Se calcula al confirmar dirección</span>
