@@ -1,8 +1,6 @@
 'use client'
 
 import { createContext, useContext, useReducer, useEffect, useState, useMemo, ReactNode } from 'react'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import type { ItemCarrito, MenuItem, Promocion } from '@/types'
 import { calcularDescuento } from '@/lib/promociones'
 
@@ -129,12 +127,10 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   }, [estado.items])
 
   useEffect(() => {
-    const unsub = onSnapshot(
-      query(collection(db, 'promociones'), where('activa', '==', true)),
-      (snap) => setPromociones(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Promocion))),
-      () => setPromociones([])
-    )
-    return unsub
+    fetch('/api/promociones')
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data: Promocion[]) => setPromociones(data))
+      .catch(() => setPromociones([]))
   }, [])
 
   const descuento = useMemo(
