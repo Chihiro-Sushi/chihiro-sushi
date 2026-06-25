@@ -82,6 +82,7 @@ export default function PromocionesPage() {
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [mostrarForm, setMostrarForm] = useState(false)
   const [guardando, setGuardando] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   useEffect(() => {
     const unsub = onSnapshot(
@@ -111,11 +112,13 @@ export default function PromocionesPage() {
     setForm(FORM_VACIO)
     setEditandoId(null)
     setMostrarForm(false)
+    setErrorMsg(null)
   }
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault()
     setGuardando(true)
+    setErrorMsg(null)
     try {
       const datos = formADatos(form)
       if (editandoId) {
@@ -124,6 +127,9 @@ export default function PromocionesPage() {
         await addDoc(collection(db, 'promociones'), datos)
       }
       reset()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al guardar'
+      setErrorMsg(msg)
     } finally {
       setGuardando(false)
     }
@@ -216,7 +222,8 @@ export default function PromocionesPage() {
       {/* Modal de formulario */}
       {mostrarForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}>
-          <div
+          <form
+            onSubmit={guardar}
             className="w-full max-w-lg rounded-2xl flex flex-col"
             style={{ backgroundColor: '#141414', border: '1px solid rgba(255,255,255,0.08)', maxHeight: '90vh' }}
           >
@@ -225,12 +232,12 @@ export default function PromocionesPage() {
               <h2 className="font-bold" style={{ color: '#F5F5F5' }}>
                 {editandoId ? 'Editar promoción' : 'Nueva promoción'}
               </h2>
-              <button onClick={reset}><X size={20} style={{ color: '#9CA3AF' }} /></button>
+              <button type="button" onClick={reset}><X size={20} style={{ color: '#9CA3AF' }} /></button>
             </div>
 
             {/* Contenido scrollable */}
             <div className="overflow-y-auto px-6 pb-2 space-y-4 flex-1">
-              <form id="form-promo" onSubmit={guardar} className="space-y-4">
+              <div className="space-y-4">
 
                 {/* Nombre */}
                 <label className="block space-y-1">
@@ -401,10 +408,17 @@ export default function PromocionesPage() {
                   Activa
                 </label>
 
-              </form>
+              </div>
             </div>
 
-            {/* Botones */}
+            {/* Error */}
+            {errorMsg && (
+              <p className="px-6 pb-2 text-xs text-center" style={{ color: '#E74C3C' }}>
+                {errorMsg}
+              </p>
+            )}
+
+            {/* Botones — dentro del form */}
             <div className="flex gap-2 p-6 pt-4 shrink-0">
               <button
                 type="button"
@@ -416,16 +430,15 @@ export default function PromocionesPage() {
               </button>
               <button
                 type="submit"
-                form="form-promo"
                 disabled={guardando}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
                 style={{ backgroundColor: '#C0392B', color: '#F5F5F5' }}
               >
                 {guardando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                Guardar
+                {guardando ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
 
