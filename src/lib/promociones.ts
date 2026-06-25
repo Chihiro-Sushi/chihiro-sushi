@@ -38,6 +38,73 @@ export function clavesConPromocion3x2(items: ItemCarrito[], promociones: Promoci
   return claves
 }
 
+export interface DescuentoItem {
+  descuento: number
+  etiqueta: string
+}
+
+export function calcularDescuentoPorItem(
+  items: ItemCarrito[],
+  promociones: Promocion[]
+): Map<string, DescuentoItem> {
+  const resultado = new Map<string, DescuentoItem>()
+  const activas = promociones.filter((p) => p.activa && esVigente(p))
+
+  for (const promo of activas) {
+    if (promo.tipo === '3x2') {
+      const unidades: { clave: string; precio: number }[] = []
+      for (const item of items) {
+        if (itemCalifica(item, promo)) {
+          const clave = item.variante ? `${item.itemId}__${item.variante}` : item.itemId
+          for (let i = 0; i < item.cantidad; i++) {
+            unidades.push({ clave, precio: item.precioUnitario })
+          }
+        }
+      }
+      unidades.sort((a, b) => b.precio - a.precio)
+      for (let i = 2; i < unidades.length; i += 3) {
+        const { clave, precio } = unidades[i]
+        const prev = resultado.get(clave)
+        resultado.set(clave, {
+          descuento: Math.round(((prev?.descuento ?? 0) + precio) * 100) / 100,
+          etiqueta: 'Promo 3×2 aplicada',
+        })
+      }
+    } else if (promo.tipo === 'porcentaje' && promo.valor) {
+      for (const item of items) {
+        if (itemCalifica(item, promo)) {
+          const clave = item.variante ? `${item.itemId}__${item.variante}` : item.itemId
+          const desc = Math.round(item.subtotal * (promo.valor / 100) * 100) / 100
+          const prev = resultado.get(clave)
+          resultado.set(clave, {
+            descuento: (prev?.descuento ?? 0) + desc,
+            etiqueta: `${promo.valor}% OFF aplicado`,
+          })
+        }
+      }
+    } else if (promo.tipo === 'fijo' && promo.valor) {
+      const totalCalificado = items
+        .filter((i) => itemCalifica(i, promo))
+        .reduce((s, i) => s + i.subtotal, 0)
+      if (totalCalificado > 0) {
+        for (const item of items) {
+          if (itemCalifica(item, promo)) {
+            const clave = item.variante ? `${item.itemId}__${item.variante}` : item.itemId
+            const desc = Math.round((promo.valor * (item.subtotal / totalCalificado)) * 100) / 100
+            const prev = resultado.get(clave)
+            resultado.set(clave, {
+              descuento: (prev?.descuento ?? 0) + desc,
+              etiqueta: `Descuento -$${promo.valor} aplicado`,
+            })
+          }
+        }
+      }
+    }
+  }
+
+  return resultado
+}
+
 export function calcularDescuento(items: ItemCarrito[], promociones: Promocion[]): number {
   const activas = promociones.filter((p) => p.activa && esVigente(p))
   let descuento = 0

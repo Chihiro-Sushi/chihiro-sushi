@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { X, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 import { useCarrito } from '@/context/CarritoContext'
-import { clavesConPromocion3x2 } from '@/lib/promociones'
+import { calcularDescuentoPorItem } from '@/lib/promociones'
 
 import type { Promocion } from '@/types'
 
@@ -29,7 +29,7 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
   const { items, total, descuento, totalConDescuento, promocionesActivas, agregar, quitar, eliminar, cantidad } = useCarrito()
   const router = useRouter()
 
-  const itemsEnPromo = clavesConPromocion3x2(items, promocionesActivas)
+  const descuentosPorItem = calcularDescuentoPorItem(items, promocionesActivas)
 
   function irACheckout() {
     onCerrar()
@@ -78,7 +78,9 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
           ) : (
             items.map((item, idx) => {
               const clave = item.variante ? `${item.itemId}__${item.variante}` : item.itemId
-              const tienePromo = itemsEnPromo.has(clave)
+              const promoItem = descuentosPorItem.get(clave)
+              const descItem = promoItem?.descuento ?? 0
+              const subtotalConDesc = Math.max(0, Math.round((item.subtotal - descItem) * 100) / 100)
 
               return (
                 <div key={`${item.itemId}-${item.variante}-${idx}`}
@@ -88,12 +90,21 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
                     {item.variante && (
                       <p className="text-gris text-xs mt-0.5">{item.variante}</p>
                     )}
-                    <p className="text-rojo text-sm font-semibold mt-1">
-                      ${item.subtotal.toFixed(2)}
-                    </p>
-                    {tienePromo && (
-                      <p className="text-xs font-medium mt-0.5" style={{ color: '#22C55E' }}>
-                        🎉 Promoción 3×2 aplicada
+                    {descItem > 0 ? (
+                      <>
+                        <p className="text-sm line-through mt-1" style={{ color: '#C0392B', opacity: 0.4 }}>
+                          ${item.subtotal.toFixed(2)}
+                        </p>
+                        <p className="text-rojo text-sm font-semibold leading-tight">
+                          ${subtotalConDesc.toFixed(2)}
+                        </p>
+                        <p className="text-xs font-medium mt-0.5" style={{ color: '#22C55E' }}>
+                          🎉 {promoItem!.etiqueta}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-rojo text-sm font-semibold mt-1">
+                        ${item.subtotal.toFixed(2)}
                       </p>
                     )}
                   </div>
