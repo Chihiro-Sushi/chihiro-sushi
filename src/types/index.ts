@@ -68,6 +68,7 @@ export interface Promocion {
   valor?: number
   categoriaIds?: string[]
   itemIds?: string[]
+  diasSemana?: number[] // 0=Dom, 1=Lun…6=Sáb. Vacío/undefined = todos los días
   activa: boolean
   fechaInicio?: Timestamp
   fechaFin?: Timestamp

@@ -1,9 +1,13 @@
 import type { ItemCarrito, Promocion } from '@/types'
 
 function esVigente(promo: Promocion): boolean {
-  const ahora = Date.now()
-  if (promo.fechaInicio && promo.fechaInicio.toMillis() > ahora) return false
-  if (promo.fechaFin && promo.fechaFin.toMillis() < ahora) return false
+  const ahora = new Date()
+  const ms = ahora.getTime()
+  if (promo.fechaInicio && promo.fechaInicio.toMillis() > ms) return false
+  if (promo.fechaFin && promo.fechaFin.toMillis() < ms) return false
+  if (promo.diasSemana && promo.diasSemana.length > 0) {
+    if (!promo.diasSemana.includes(ahora.getDay())) return false
+  }
   return true
 }
 

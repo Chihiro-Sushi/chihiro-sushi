@@ -2,13 +2,15 @@
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
-import { ChevronDown, AlertCircle } from 'lucide-react'
+import { ChevronDown, AlertCircle, Tag } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CategoriaNav from '@/components/menu/CategoriaNav'
 import ItemCard from '@/components/menu/ItemCard'
 import ArmaRolloCard from '@/components/menu/ArmaRolloCard'
 import { useMenu } from '@/hooks/useMenu'
+import { useCarrito } from '@/context/CarritoContext'
+import type { Categoria, Promocion } from '@/types'
 
 const HERO_IMAGES = [
   '/images/04032026-_DSC4775.jpg',
@@ -16,18 +18,56 @@ const HERO_IMAGES = [
   '/images/01022026-_DSC2652.jpg',
 ]
 
+const PROMO_CAT: Categoria = {
+  id: '__promociones',
+  nombre: 'Promociones',
+  orden: -1,
+  activa: true,
+  icono: '🎉',
+}
+
+const DIAS_CORTO = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+
+function esHoyValida(promo: Promocion): boolean {
+  if (!promo.diasSemana || promo.diasSemana.length === 0) return true
+  return promo.diasSemana.includes(new Date().getDay())
+}
+
+function badgeTipo(promo: Promocion): string {
+  if (promo.tipo === '3x2') return '3×2'
+  if (promo.tipo === 'porcentaje') return `${promo.valor}% OFF`
+  return `-$${promo.valor}`
+}
+
 export default function HomePage() {
   const { categorias, itemsPorCategoria, cargando, error } = useMenu()
+  const { promocionesActivas } = useCarrito()
   const [categoriaActiva, setCategoriaActiva] = useState<string>('')
   const catRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  const promosDelDia = promocionesActivas.filter(esHoyValida)
+  const mostrarPromos = promosDelDia.length > 0
+  const categoriasNav: Categoria[] = mostrarPromos ? [PROMO_CAT, ...categorias] : categorias
 
   function scrollACategoria(id: string) {
     setCategoriaActiva(id)
     catRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  if (!categoriaActiva && categorias.length > 0) {
-    setCategoriaActiva(categorias[0].id)
+  if (!categoriaActiva && categoriasNav.length > 0) {
+    setCategoriaActiva(categoriasNav[0].id)
+  }
+
+  function alcanceTexto(promo: Promocion): string {
+    if (promo.categoriaIds && promo.categoriaIds.length > 0) {
+      return promo.categoriaIds
+        .map((id) => categorias.find((c) => c.id === id)?.nombre || id)
+        .join(', ')
+    }
+    if (promo.itemIds && promo.itemIds.length > 0) {
+      return `${promo.itemIds.length} producto${promo.itemIds.length > 1 ? 's' : ''} seleccionado${promo.itemIds.length > 1 ? 's' : ''}`
+    }
+    return 'Todos los productos'
   }
 
   return (
@@ -114,13 +154,77 @@ export default function HomePage() {
               <div className="sticky top-16 z-30 backdrop-blur py-3 -mx-4 px-4 mb-6"
                 style={{ backgroundColor: 'rgba(10,10,10,0.95)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <CategoriaNav
-                  categorias={categorias}
+                  categorias={categoriasNav}
                   activa={categoriaActiva}
                   onSeleccionar={scrollACategoria}
                 />
               </div>
 
               <div className="space-y-12">
+
+                {/* ─── Sección Promociones ─── */}
+                {mostrarPromos && (
+                  <div
+                    ref={(el) => { catRefs.current['__promociones'] = el }}
+                    className="scroll-mt-36"
+                  >
+                    <div className="flex items-center gap-3 mb-5">
+                      <span className="text-2xl">🎉</span>
+                      <h3 className="text-xl font-bold" style={{ color: '#F5F5F5' }}>Promociones</h3>
+                      <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(192,57,43,0.2)' }} />
+                      <span className="text-xs" style={{ color: 'rgba(156,163,175,0.5)' }}>
+                        {promosDelDia.length} activa{promosDelDia.length > 1 ? 's' : ''}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {promosDelDia.map((promo) => (
+                        <div
+                          key={promo.id}
+                          className="rounded-2xl p-5"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(192,57,43,0.12) 0%, rgba(192,57,43,0.04) 100%)',
+                            border: '1px solid rgba(192,57,43,0.25)',
+                          }}
+                        >
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <h4 className="font-bold text-base leading-tight" style={{ color: '#F5F5F5' }}>
+                              {promo.nombre}
+                            </h4>
+                            <span
+                              className="shrink-0 text-sm font-black px-3 py-1 rounded-full"
+                              style={{ backgroundColor: 'rgba(192,57,43,0.25)', color: '#E74C3C' }}
+                            >
+                              {badgeTipo(promo)}
+                            </span>
+                          </div>
+
+                          {promo.descripcion && (
+                            <p className="text-sm mb-3 leading-relaxed" style={{ color: '#9CA3AF' }}>
+                              {promo.descripcion}
+                            </p>
+                          )}
+
+                          <div className="flex flex-wrap gap-2">
+                            <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
+                              style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: '#9CA3AF' }}>
+                              <Tag size={10} />
+                              {alcanceTexto(promo)}
+                            </span>
+                            {promo.diasSemana && promo.diasSemana.length > 0 && (
+                              <span className="text-xs px-2.5 py-1 rounded-full"
+                                style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: '#9CA3AF' }}>
+                                📅 {promo.diasSemana.map((d) => DIAS_CORTO[d]).join(', ')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── Categorías del menú ─── */}
                 {categorias.map((cat) => {
                   const items = itemsPorCategoria(cat.id)
                   if (items.length === 0) return null
