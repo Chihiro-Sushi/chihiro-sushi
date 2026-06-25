@@ -29,6 +29,7 @@ export interface MenuItem {
 export interface ItemCarrito {
   itemId: string
   nombre: string
+  categoriaId?: string
   variante?: string
   cantidad: number
   precioUnitario: number

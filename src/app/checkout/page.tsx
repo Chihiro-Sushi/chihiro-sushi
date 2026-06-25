@@ -17,7 +17,7 @@ interface DireccionData {
 }
 
 export default function CheckoutPage() {
-  const { items, total, limpiar } = useCarrito()
+  const { items, total, descuento, totalConDescuento, limpiar } = useCarrito()
   const router = useRouter()
 
   const [nombre, setNombre] = useState('')
@@ -51,7 +51,7 @@ export default function CheckoutPage() {
     }
   }, [])
 
-  const totalSinComision = total + (costoEnvio ?? 0)
+  const totalSinComision = totalConDescuento + (costoEnvio ?? 0)
   const comisionStripe = metodoPago === 'tarjeta'
     ? Math.ceil(totalSinComision * 0.036 + 3)
     : 0
@@ -80,7 +80,7 @@ export default function CheckoutPage() {
         items,
         subtotal: total,
         costoEnvio: costoEnvio ?? 0,
-        descuento: 0,
+        descuento,
         comisionTarjeta: comisionStripe,
         total: totalFinal,
         metodoPago,
@@ -270,6 +270,11 @@ export default function CheckoutPage() {
               <div className="flex justify-between text-sm" style={{ color: '#9CA3AF' }}>
                 <span>Subtotal</span><span>${total.toFixed(2)}</span>
               </div>
+              {descuento > 0 && (
+                <div className="flex justify-between text-sm font-medium" style={{ color: '#22C55E' }}>
+                  <span>Descuento 3×2</span><span>-${descuento.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm" style={{ color: '#9CA3AF' }}>
                 <span>Envío</span>
                 <span>{costoEnvio !== null ? `$${costoEnvio.toFixed(2)}` : 'Por calcular'}</span>

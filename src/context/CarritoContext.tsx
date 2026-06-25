@@ -1,7 +1,10 @@
 'use client'
 
-import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react'
-import type { ItemCarrito, MenuItem } from '@/types'
+import { createContext, useContext, useReducer, useEffect, useState, useMemo, ReactNode } from 'react'
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import type { ItemCarrito, MenuItem, Promocion } from '@/types'
+import { calcularDescuento } from '@/lib/promociones'
 
 interface EstadoCarrito {
   items: ItemCarrito[]
@@ -52,6 +55,7 @@ function reducer(estado: EstadoCarrito, accion: AccionCarrito): EstadoCarrito {
             {
               itemId: item.id,
               nombre: item.nombre,
+              categoriaId: item.categoriaId,
               variante,
               cantidad: n,
               precioUnitario: precio,
@@ -96,6 +100,9 @@ function reducer(estado: EstadoCarrito, accion: AccionCarrito): EstadoCarrito {
 const estadoInicial: EstadoCarrito = { items: [], total: 0, cantidad: 0 }
 
 interface ContextoCarrito extends EstadoCarrito {
+  descuento: number
+  totalConDescuento: number
+  promocionesActivas: Promocion[]
   agregar: (item: MenuItem, variante?: string, cantidad?: number) => void
   quitar: (itemId: string, variante?: string) => void
   eliminar: (itemId: string, variante?: string) => void
@@ -106,6 +113,7 @@ const CarritoContext = createContext<ContextoCarrito | null>(null)
 
 export function CarritoProvider({ children }: { children: ReactNode }) {
   const [estado, dispatch] = useReducer(reducer, estadoInicial)
+  const [promociones, setPromociones] = useState<Promocion[]>([])
 
   useEffect(() => {
     try {
@@ -120,6 +128,22 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('chihiro_carrito', JSON.stringify(estado.items))
   }, [estado.items])
 
+  useEffect(() => {
+    const unsub = onSnapshot(
+      query(collection(db, 'promociones'), where('activa', '==', true)),
+      (snap) => setPromociones(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Promocion))),
+      () => setPromociones([])
+    )
+    return unsub
+  }, [])
+
+  const descuento = useMemo(
+    () => calcularDescuento(estado.items, promociones),
+    [estado.items, promociones]
+  )
+
+  const totalConDescuento = Math.max(0, Math.round((estado.total - descuento) * 100) / 100)
+
   const agregar = (item: MenuItem, variante?: string, cantidad = 1) =>
     dispatch({ type: 'AGREGAR', payload: { item, variante, cantidad } })
   const quitar = (itemId: string, variante?: string) =>
@@ -129,7 +153,7 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   const limpiar = () => dispatch({ type: 'LIMPIAR' })
 
   return (
-    <CarritoContext.Provider value={{ ...estado, agregar, quitar, eliminar, limpiar }}>
+    <CarritoContext.Provider value={{ ...estado, descuento, totalConDescuento, promocionesActivas: promociones, agregar, quitar, eliminar, limpiar }}>
       {children}
     </CarritoContext.Provider>
   )

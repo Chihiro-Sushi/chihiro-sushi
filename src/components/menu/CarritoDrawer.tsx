@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { X, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 import { useCarrito } from '@/context/CarritoContext'
+import { clavesConPromocion3x2 } from '@/lib/promociones'
 
 interface Props {
   abierto: boolean
@@ -10,8 +11,10 @@ interface Props {
 }
 
 export default function CarritoDrawer({ abierto, onCerrar }: Props) {
-  const { items, total, agregar, quitar, eliminar, cantidad } = useCarrito()
+  const { items, total, descuento, totalConDescuento, promocionesActivas, agregar, quitar, eliminar, cantidad } = useCarrito()
   const router = useRouter()
+
+  const itemsEnPromo = clavesConPromocion3x2(items, promocionesActivas)
 
   function irACheckout() {
     onCerrar()
@@ -58,44 +61,54 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
               </button>
             </div>
           ) : (
-            items.map((item, idx) => (
-              <div key={`${item.itemId}-${item.variante}-${idx}`}
-                className="flex items-start gap-3 bg-negro/50 rounded-xl p-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-blanco text-sm font-medium leading-tight">{item.nombre}</p>
-                  {item.variante && (
-                    <p className="text-gris text-xs mt-0.5">{item.variante}</p>
-                  )}
-                  <p className="text-rojo text-sm font-semibold mt-1">
-                    ${item.subtotal.toFixed(2)}
-                  </p>
+            items.map((item, idx) => {
+              const clave = item.variante ? `${item.itemId}__${item.variante}` : item.itemId
+              const tienePromo = itemsEnPromo.has(clave)
+
+              return (
+                <div key={`${item.itemId}-${item.variante}-${idx}`}
+                  className="flex items-start gap-3 bg-negro/50 rounded-xl p-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-blanco text-sm font-medium leading-tight">{item.nombre}</p>
+                    {item.variante && (
+                      <p className="text-gris text-xs mt-0.5">{item.variante}</p>
+                    )}
+                    <p className="text-rojo text-sm font-semibold mt-1">
+                      ${item.subtotal.toFixed(2)}
+                    </p>
+                    {tienePromo && (
+                      <p className="text-xs font-medium mt-0.5" style={{ color: '#22C55E' }}>
+                        🎉 Promoción 3×2 aplicada
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => quitar(item.itemId, item.variante)}
+                      className="w-7 h-7 rounded-full bg-blanco/10 flex items-center justify-center hover:bg-rojo/20 transition-colors"
+                    >
+                      <Minus size={12} />
+                    </button>
+                    <span className="text-blanco text-sm w-4 text-center">{item.cantidad}</span>
+                    <button
+                      onClick={() => {
+                        const fakeItem = { id: item.itemId, nombre: item.nombre, precio: item.precioUnitario, variantes: [], disponible: true, orden: 0, categoriaId: item.categoriaId ?? '', descripcion: '' }
+                        agregar(fakeItem as any, item.variante)
+                      }}
+                      className="w-7 h-7 rounded-full bg-blanco/10 flex items-center justify-center hover:bg-rojo/20 transition-colors"
+                    >
+                      <Plus size={12} />
+                    </button>
+                    <button
+                      onClick={() => eliminar(item.itemId, item.variante)}
+                      className="w-7 h-7 rounded-full bg-blanco/10 flex items-center justify-center hover:bg-rojo/20 transition-colors ml-1"
+                    >
+                      <Trash2 size={12} className="text-rojo" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => quitar(item.itemId, item.variante)}
-                    className="w-7 h-7 rounded-full bg-blanco/10 flex items-center justify-center hover:bg-rojo/20 transition-colors"
-                  >
-                    <Minus size={12} />
-                  </button>
-                  <span className="text-blanco text-sm w-4 text-center">{item.cantidad}</span>
-                  <button
-                    onClick={() => {
-                      const fakeItem = { id: item.itemId, nombre: item.nombre, precio: item.precioUnitario, variantes: [], disponible: true, orden: 0, categoriaId: '', descripcion: '' }
-                      agregar(fakeItem as any, item.variante)
-                    }}
-                    className="w-7 h-7 rounded-full bg-blanco/10 flex items-center justify-center hover:bg-rojo/20 transition-colors"
-                  >
-                    <Plus size={12} />
-                  </button>
-                  <button
-                    onClick={() => eliminar(item.itemId, item.variante)}
-                    className="w-7 h-7 rounded-full bg-blanco/10 flex items-center justify-center hover:bg-rojo/20 transition-colors ml-1"
-                  >
-                    <Trash2 size={12} className="text-rojo" />
-                  </button>
-                </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
 
@@ -106,6 +119,12 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
               <span>Subtotal</span>
               <span className="text-blanco">${total.toFixed(2)}</span>
             </div>
+            {descuento > 0 && (
+              <div className="flex justify-between text-sm font-medium" style={{ color: '#22C55E' }}>
+                <span>Descuento 3×2</span>
+                <span>-${descuento.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-xs text-gris/60">
               <span>Envío</span>
               <span>Se calcula al confirmar dirección</span>
@@ -114,7 +133,7 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
               onClick={irACheckout}
               className="w-full bg-rojo hover:bg-rojo/80 text-blanco font-semibold py-3 rounded-xl transition-colors active:scale-95"
             >
-              Hacer pedido — ${total.toFixed(2)}
+              Hacer pedido — ${totalConDescuento.toFixed(2)}
             </button>
           </div>
         )}
