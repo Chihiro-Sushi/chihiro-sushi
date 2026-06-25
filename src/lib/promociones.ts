@@ -83,20 +83,15 @@ export function calcularDescuentoPorItem(
         }
       }
     } else if (promo.tipo === 'fijo' && promo.valor) {
-      const totalCalificado = items
-        .filter((i) => itemCalifica(i, promo))
-        .reduce((s, i) => s + i.subtotal, 0)
-      if (totalCalificado > 0) {
-        for (const item of items) {
-          if (itemCalifica(item, promo)) {
-            const clave = item.variante ? `${item.itemId}__${item.variante}` : item.itemId
-            const desc = Math.round((promo.valor * (item.subtotal / totalCalificado)) * 100) / 100
-            const prev = resultado.get(clave)
-            resultado.set(clave, {
-              descuento: (prev?.descuento ?? 0) + desc,
-              etiqueta: `Descuento -$${promo.valor} aplicado`,
-            })
-          }
+      for (const item of items) {
+        if (itemCalifica(item, promo)) {
+          const clave = item.variante ? `${item.itemId}__${item.variante}` : item.itemId
+          const desc = Math.round(promo.valor * item.cantidad * 100) / 100
+          const prev = resultado.get(clave)
+          resultado.set(clave, {
+            descuento: (prev?.descuento ?? 0) + desc,
+            etiqueta: `-$${promo.valor} por unidad`,
+          })
         }
       }
     }
@@ -131,7 +126,10 @@ export function calcularDescuento(items: ItemCarrito[], promociones: Promocion[]
         .reduce((s, item) => s + item.subtotal, 0)
       descuento += base * (promo.valor / 100)
     } else if (promo.tipo === 'fijo' && promo.valor) {
-      descuento += promo.valor
+      const totalUnidades = items
+        .filter((item) => itemCalifica(item, promo))
+        .reduce((s, item) => s + item.cantidad, 0)
+      descuento += promo.valor * totalUnidades
     }
   }
 
