@@ -1,6 +1,18 @@
 import { Phone, Clock, MapPin } from 'lucide-react'
+import type { ConfiguracionSitio } from '@/types'
 
-export default function Footer() {
+interface Props {
+  config?: Pick<ConfiguracionSitio, 'slogan' | 'telefono' | 'horario' | 'redesSociales'>
+}
+
+export default function Footer({ config }: Props) {
+  const slogan = config?.slogan ?? '¡Un viaje de sabor en cada bocado!'
+  const telefono = config?.telefono ?? '(984) 313 9064'
+  const horario = config?.horario ?? 'Lun–Dom 13:00–23:00 hrs'
+  const whatsapp = config?.redesSociales?.whatsapp ?? '9843139064'
+  const instagram = config?.redesSociales?.instagram ?? 'Sushi_Chihiro'
+  const facebook = config?.redesSociales?.facebook ?? 'Chihiro Sushi'
+
   return (
     <footer id="contacto" className="bg-negro border-t border-rojo/20 pt-12 pb-8">
       <div className="max-w-6xl mx-auto px-4">
@@ -8,7 +20,7 @@ export default function Footer() {
           <div>
             <h3 className="text-rojo font-bold text-lg mb-4">CHIHIRO SUSHI</h3>
             <p className="text-gris text-sm leading-relaxed">
-              ¡Un viaje de sabor en cada bocado!
+              {slogan}
               <br />Cocina Japonesa Fusión
             </p>
             <p className="text-gris/60 text-xs mt-3 italic">
@@ -21,12 +33,12 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-gris">
               <li className="flex items-center gap-2">
                 <Phone size={15} className="text-rojo shrink-0" />
-                <a href="https://wa.me/9843139064" target="_blank" rel="noopener noreferrer"
-                  className="hover:text-rojo transition-colors">(984) 313 9064</a>
+                <a href={`https://wa.me/${whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
+                  className="hover:text-rojo transition-colors">{telefono}</a>
               </li>
               <li className="flex items-center gap-2">
                 <Clock size={15} className="text-rojo shrink-0" />
-                Lun–Dom 13:00–23:00 hrs
+                {horario}
               </li>
               <li className="flex items-center gap-2">
                 <MapPin size={15} className="text-rojo shrink-0" />
@@ -40,11 +52,11 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-gris">
               <li>
                 <a href="https://www.facebook.com/profile.php?id=61583605506197" target="_blank" rel="noopener noreferrer"
-                  className="hover:text-rojo transition-colors">📘 Chihiro Sushi</a>
+                  className="hover:text-rojo transition-colors">📘 {facebook}</a>
               </li>
               <li>
-                <a href="https://instagram.com/Sushi_Chihiro" target="_blank" rel="noopener noreferrer"
-                  className="hover:text-rojo transition-colors">📸 Sushi_Chihiro</a>
+                <a href={`https://instagram.com/${instagram}`} target="_blank" rel="noopener noreferrer"
+                  className="hover:text-rojo transition-colors">📸 {instagram}</a>
               </li>
             </ul>
           </div>

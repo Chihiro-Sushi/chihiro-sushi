@@ -10,6 +10,7 @@ import ItemCard from '@/components/menu/ItemCard'
 import ArmaRolloCard from '@/components/menu/ArmaRolloCard'
 import { useMenu } from '@/hooks/useMenu'
 import { useCarrito } from '@/context/CarritoContext'
+import { useConfiguracion } from '@/hooks/useConfiguracion'
 import type { Categoria, Promocion } from '@/types'
 
 const HERO_IMAGES = [
@@ -42,6 +43,7 @@ function badgeTipo(promo: Promocion): string {
 export default function HomePage() {
   const { categorias, itemsPorCategoria, cargando, error } = useMenu()
   const { promocionesActivas } = useCarrito()
+  const config = useConfiguracion()
   const [categoriaActiva, setCategoriaActiva] = useState<string>('')
   const catRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -90,14 +92,14 @@ export default function HomePage() {
             <span style={{ color: '#F5F5F5' }}>SUSHI</span>
           </h1>
           <p style={{ color: '#9CA3AF', fontSize: '1.125rem', marginBottom: 8 }}>
-            ¡Un viaje de sabor en cada bocado!
+            {config.slogan}
           </p>
           <p style={{ color: '#9CA3AF', opacity: 0.6, fontSize: '0.875rem', marginBottom: 32 }}>
             Cocina Japonesa Fusión · Delivery a todo Playa del Carmen
           </p>
           <div className="inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-full mb-8 bounce-soft"
             style={{ backgroundColor: 'rgba(192,57,43,0.9)', color: '#F5F5F5', boxShadow: '0 8px 24px rgba(192,57,43,0.3)' }}>
-            🎉 3×2 todos los días — Sopas, Rollos, Yakimeshis, Pastas y Kushiages
+            {config.textoDestacado}
           </div>
           <div className="flex flex-col items-center">
             <a href="#menu" style={{ color: '#9CA3AF' }}>
@@ -131,7 +133,7 @@ export default function HomePage() {
             Nuestro <span style={{ color: '#C0392B' }}>Menú</span>
           </h2>
           <p className="text-sm mb-6" style={{ color: '#9CA3AF' }}>
-            Solo disponible en delivery · Lun–Dom 13:00–23:00 hrs
+            Solo disponible en delivery · {config.horario}
           </p>
 
           {cargando ? (
@@ -281,7 +283,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <Footer />
+      <Footer config={config} />
     </div>
   )
 }
