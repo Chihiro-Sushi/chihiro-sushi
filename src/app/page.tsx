@@ -89,8 +89,8 @@ export default function HomePage() {
   const mostrarPromos = promosDelDia.length > 0
   const categoriasNav: Categoria[] = [
     ...(mostrarPromos ? [PROMO_CAT] : []),
-    EXTRAS_CAT,
     ...categorias,
+    EXTRAS_CAT,
   ]
 
   function scrollACategoria(id: string) {
@@ -289,27 +289,6 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* ─── Extras ─── */}
-                <div
-                  ref={(el) => { catRefs.current['__extras'] = el }}
-                  className="scroll-mt-36"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-2xl">🥑</span>
-                    <h3 className="text-xl font-bold" style={{ color: '#F5F5F5' }}>Extras</h3>
-                    <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(192,57,43,0.2)' }} />
-                    <span className="text-xs" style={{ color: 'rgba(156,163,175,0.5)' }}>3 opciones</span>
-                  </div>
-                  <p className="text-xs mb-4" style={{ color: '#9CA3AF' }}>
-                    Ingredientes adicionales para complementar tu pedido · $25 c/u
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {EXTRAS_ITEMS.map((item) => (
-                      <ItemCard key={item.id} item={item} />
-                    ))}
-                  </div>
-                </div>
-
                 {/* ─── Categorías del menú ─── */}
                 {categorias.map((cat) => {
                   const items = itemsPorCategoria(cat.id)
@@ -343,6 +322,27 @@ export default function HomePage() {
                     </div>
                   )
                 })}
+
+                {/* ─── Extras ─── */}
+                <div
+                  ref={(el) => { catRefs.current['__extras'] = el }}
+                  className="scroll-mt-36"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl">🥑</span>
+                    <h3 className="text-xl font-bold" style={{ color: '#F5F5F5' }}>Extras</h3>
+                    <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(192,57,43,0.2)' }} />
+                    <span className="text-xs" style={{ color: 'rgba(156,163,175,0.5)' }}>3 opciones</span>
+                  </div>
+                  <p className="text-xs mb-4" style={{ color: '#9CA3AF' }}>
+                    Ingredientes adicionales para complementar tu pedido · $25 c/u
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {EXTRAS_ITEMS.map((item) => (
+                      <ItemCard key={item.id} item={item} />
+                    ))}
+                  </div>
+                </div>
               </div>
             </>
           )}
