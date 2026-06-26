@@ -92,4 +92,7 @@ export interface ConfiguracionSitio {
   tarifaEnvioBase: number
   tarifaPorKm: number
   kmMaximoEnvio: number
+  tarifaClimaticaActiva?: boolean
+  montoClimatico?: number
+  suspensionDelivery?: boolean
 }

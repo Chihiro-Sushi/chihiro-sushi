@@ -6,6 +6,14 @@ import type { Pedido } from '@/types'
 
 export async function POST(req: NextRequest) {
   try {
+    const configSnap = await adminDb.collection('configuracion').doc('sitio').get()
+    if (configSnap.exists && configSnap.data()?.suspensionDelivery) {
+      return NextResponse.json(
+        { error: 'Delivery suspendido temporalmente por condiciones climáticas.' },
+        { status: 503 }
+      )
+    }
+
     const body = await req.json()
 
     const counterRef = adminDb.collection('counters').doc('pedidos')

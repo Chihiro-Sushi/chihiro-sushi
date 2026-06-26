@@ -15,6 +15,9 @@ const DEFECTO: ConfiguracionSitio = {
   tarifaEnvioBase: 30,
   tarifaPorKm: 10,
   kmMaximoEnvio: 15,
+  tarifaClimaticaActiva: false,
+  montoClimatico: 10,
+  suspensionDelivery: false,
 }
 
 export function useConfiguracion() {

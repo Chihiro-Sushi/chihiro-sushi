@@ -26,15 +26,36 @@ export default function CheckoutPage() {
   const [metodoPago, setMetodoPago] = useState<MetodoPago>('efectivo')
   const [direccionData, setDireccionData] = useState<DireccionData | null>(null)
   const [costoEnvio, setCostoEnvio] = useState<number | null>(null)
+  const [surcargoClimatico, setSurcargoClimatico] = useState(0)
   const [fueraDeZona, setFueraDeZona] = useState(false)
+  const [zonaRestringida, setZonaRestringida] = useState('')
   const [calculandoEnvio, setCalculandoEnvio] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
+
+  function validarZona(direccion: string): string {
+    const dir = direccion.toLowerCase()
+    if (dir.includes('in house')) {
+      return 'Lo sentimos, no realizamos entregas en esta zona.'
+    }
+    if (dir.includes('cristo rey')) {
+      if (new Date().getHours() >= 18) {
+        return 'Lo sentimos, no realizamos entregas a Cristo Rey después de las 6:00 pm.'
+      }
+    }
+    return ''
+  }
 
   const handleDireccionChange = useCallback(async (data: DireccionData) => {
     setDireccionData(data)
     setFueraDeZona(false)
     setCostoEnvio(null)
+    setSurcargoClimatico(0)
+
+    const restriccion = validarZona(data.direccion)
+    setZonaRestringida(restriccion)
+    if (restriccion) return
+
     setCalculandoEnvio(true)
     try {
       const res = await fetch(`/api/envio?distanciaKm=${data.distanciaKm.toFixed(2)}`)
@@ -43,15 +64,17 @@ export default function CheckoutPage() {
         setFueraDeZona(true)
       } else {
         setCostoEnvio(json.costo)
+        setSurcargoClimatico(json.surcargoClimatico ?? 0)
       }
     } catch {
       setError('No se pudo calcular el costo de envío. Intenta de nuevo.')
     } finally {
       setCalculandoEnvio(false)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const totalSinComision = totalConDescuento + (costoEnvio ?? 0)
+  const totalSinComision = totalConDescuento + (costoEnvio ?? 0) + surcargoClimatico
   const comisionStripe = metodoPago === 'tarjeta'
     ? Math.ceil(totalSinComision * 0.036 + 3)
     : 0
@@ -104,6 +127,7 @@ export default function CheckoutPage() {
         body: JSON.stringify(pedidoData),
       })
 
+      if (res.status === 503) throw new Error('El delivery está suspendido temporalmente por condiciones climáticas. ¡Vuelve pronto!')
       if (!res.ok) throw new Error('Error al procesar el pedido')
 
       limpiar()
@@ -199,6 +223,13 @@ export default function CheckoutPage() {
                 </span>
               </div>
             )}
+            {zonaRestringida && (
+              <div className="flex items-center gap-2 text-sm rounded-lg px-4 py-3"
+                style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', color: '#F87171' }}>
+                <AlertCircle size={15} className="shrink-0" />
+                {zonaRestringida}
+              </div>
+            )}
             {fueraDeZona && !calculandoEnvio && (
               <div className="flex items-center gap-2 text-sm rounded-lg px-4 py-3"
                 style={{ backgroundColor: 'rgba(251,176,64,0.1)', border: '1px solid rgba(251,176,64,0.3)', color: '#FBB040' }}>
@@ -279,6 +310,12 @@ export default function CheckoutPage() {
                 <span>Envío</span>
                 <span>{costoEnvio !== null ? `$${costoEnvio.toFixed(2)}` : 'Por calcular'}</span>
               </div>
+              {surcargoClimatico > 0 && (
+                <div className="flex justify-between text-sm" style={{ color: '#FBB040' }}>
+                  <span>🌧️ Tarifa por condiciones climáticas</span>
+                  <span>+${surcargoClimatico.toFixed(2)}</span>
+                </div>
+              )}
               {metodoPago === 'tarjeta' && (
                 <div className="flex justify-between text-sm" style={{ color: '#9CA3AF' }}>
                   <span>Cargo por pago con tarjeta</span>
@@ -301,7 +338,7 @@ export default function CheckoutPage() {
 
           <button
             type="submit"
-            disabled={enviando || !direccionData || fueraDeZona || costoEnvio === null}
+            disabled={enviando || !direccionData || fueraDeZona || !!zonaRestringida || costoEnvio === null}
             className="w-full py-4 rounded-xl font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{ backgroundColor: '#C0392B', color: '#F5F5F5' }}
           >

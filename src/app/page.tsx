@@ -76,6 +76,13 @@ export default function HomePage() {
     <div className="min-h-screen" style={{ backgroundColor: '#0A0A0A' }}>
       <Navbar />
 
+      {config.suspensionDelivery && (
+        <div className="w-full px-4 py-4 text-center text-sm font-semibold"
+          style={{ backgroundColor: '#C0392B', color: '#F5F5F5', letterSpacing: '0.01em' }}>
+          🌧️ Por condiciones climáticas no podemos procesar pedidos en este momento. ¡Gracias por tu comprensión, vuelve pronto!
+        </div>
+      )}
+
       {/* Hero */}
       <section className="relative flex items-center justify-center overflow-hidden" style={{ height: '90vh', minHeight: 500 }}>
         <Image
