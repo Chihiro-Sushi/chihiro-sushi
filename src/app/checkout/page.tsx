@@ -30,6 +30,7 @@ export default function CheckoutPage() {
   const [fueraDeZona, setFueraDeZona] = useState(false)
   const [zonaRestringida, setZonaRestringida] = useState('')
   const [calculandoEnvio, setCalculandoEnvio] = useState(false)
+  const [pagoEfectivo, setPagoEfectivo] = useState<'exacto' | 'cambio' | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
 
@@ -89,6 +90,7 @@ export default function CheckoutPage() {
     if (soloDigitos.length !== 10) { setError('Ingresa un número de WhatsApp válido (10 dígitos)'); return }
     if (!direccionData) { setError('Selecciona tu dirección en el mapa'); return }
     if (items.length === 0) { setError('Tu carrito está vacío'); return }
+    if (metodoPago === 'efectivo' && !pagoEfectivo) { setError('Selecciona si traes el monto exacto o necesitas cambio'); return }
 
     setEnviando(true)
 
@@ -103,10 +105,12 @@ export default function CheckoutPage() {
         items,
         subtotal: total,
         costoEnvio: costoEnvio ?? 0,
+        surcargoClimatico,
         descuento,
         comisionTarjeta: comisionStripe,
         total: totalFinal,
         metodoPago,
+        ...(metodoPago === 'efectivo' && pagoEfectivo ? { pagoEfectivo } : {}),
         notas: notas.trim(),
       }
 
@@ -133,7 +137,7 @@ export default function CheckoutPage() {
       limpiar()
       router.push('/pedido-confirmado')
     } catch (err) {
-      setError('Ocurrió un error. Intenta de nuevo o contáctanos por WhatsApp.')
+      setError(err instanceof Error ? err.message : 'Ocurrió un error. Intenta de nuevo o contáctanos por WhatsApp.')
     } finally {
       setEnviando(false)
     }
@@ -255,7 +259,7 @@ export default function CheckoutPage() {
                 <button
                   key={valor}
                   type="button"
-                  onClick={() => setMetodoPago(valor)}
+                  onClick={() => { setMetodoPago(valor); if (valor === 'tarjeta') setPagoEfectivo(null) }}
                   className="flex items-center gap-3 p-4 rounded-xl border transition-all"
                   style={{
                     border: metodoPago === valor ? '2px solid #C0392B' : '1px solid rgba(255,255,255,0.1)',
@@ -268,6 +272,31 @@ export default function CheckoutPage() {
                 </button>
               ))}
             </div>
+            {metodoPago === 'efectivo' && (
+              <div className="space-y-2 pt-1">
+                <p className="text-xs font-medium" style={{ color: '#9CA3AF' }}>¿Cómo vas a pagar?</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { valor: 'exacto' as const, label: '💰 Pago exacto', desc: 'Llevaré el monto exacto' },
+                    { valor: 'cambio' as const, label: '💵 Necesito cambio', desc: 'Me darán cambio' },
+                  ] as const).map(({ valor, label, desc }) => (
+                    <button
+                      key={valor}
+                      type="button"
+                      onClick={() => setPagoEfectivo(valor)}
+                      className="flex flex-col gap-0.5 p-3 rounded-xl transition-all text-left"
+                      style={{
+                        border: pagoEfectivo === valor ? '2px solid #C0392B' : '1px solid rgba(255,255,255,0.1)',
+                        backgroundColor: pagoEfectivo === valor ? 'rgba(192,57,43,0.1)' : 'transparent',
+                      }}
+                    >
+                      <span className="text-sm font-medium" style={{ color: pagoEfectivo === valor ? '#C0392B' : '#F5F5F5' }}>{label}</span>
+                      <span className="text-xs" style={{ color: '#9CA3AF' }}>{desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {metodoPago === 'tarjeta' && (
               <p className="text-xs" style={{ color: 'rgba(156,163,175,0.7)' }}>
                 Serás redirigido a una página segura para completar el pago con tarjeta.
@@ -311,9 +340,10 @@ export default function CheckoutPage() {
                 <span>{costoEnvio !== null ? `$${costoEnvio.toFixed(2)}` : 'Por calcular'}</span>
               </div>
               {surcargoClimatico > 0 && (
-                <div className="flex justify-between text-sm" style={{ color: '#FBB040' }}>
+                <div className="flex justify-between items-center text-sm rounded-lg px-3 py-2 -mx-3"
+                  style={{ backgroundColor: 'rgba(251,176,64,0.08)', border: '1px solid rgba(251,176,64,0.2)', color: '#FBB040' }}>
                   <span>🌧️ Tarifa por condiciones climáticas</span>
-                  <span>+${surcargoClimatico.toFixed(2)}</span>
+                  <span className="font-semibold">+${surcargoClimatico.toFixed(2)}</span>
                 </div>
               )}
               {metodoPago === 'tarjeta' && (
@@ -338,7 +368,7 @@ export default function CheckoutPage() {
 
           <button
             type="submit"
-            disabled={enviando || !direccionData || fueraDeZona || !!zonaRestringida || costoEnvio === null}
+            disabled={enviando || !direccionData || fueraDeZona || !!zonaRestringida || costoEnvio === null || (metodoPago === 'efectivo' && !pagoEfectivo)}
             className="w-full py-4 rounded-xl font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{ backgroundColor: '#C0392B', color: '#F5F5F5' }}
           >

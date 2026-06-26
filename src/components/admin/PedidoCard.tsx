@@ -111,6 +111,11 @@ export default function PedidoCard({ pedido }: Props) {
                 ? <><CreditCard size={11} /> Tarjeta</>
                 : <><Banknote size={11} /> Efectivo</>}
             </p>
+            {pedido.metodoPago === 'efectivo' && pedido.pagoEfectivo && (
+              <p className="text-xs mt-0.5 text-right" style={{ color: pedido.pagoEfectivo === 'cambio' ? '#FBB040' : '#9CA3AF' }}>
+                {pedido.pagoEfectivo === 'exacto' ? '💰 Pago exacto' : '💵 Necesita cambio'}
+              </p>
+            )}
           </div>
         </div>
 
@@ -180,6 +185,12 @@ export default function PedidoCard({ pedido }: Props) {
               <span>Envío</span>
               <span>${pedido.costoEnvio.toFixed(2)}</span>
             </div>
+            {pedido.surcargoClimatico && pedido.surcargoClimatico > 0 ? (
+              <div className="flex justify-between" style={{ color: '#FBB040' }}>
+                <span>🌧️ Tarifa climática</span>
+                <span>+${pedido.surcargoClimatico.toFixed(2)}</span>
+              </div>
+            ) : null}
             <div
               className="flex justify-between pt-1.5 font-semibold text-sm"
               style={{ borderTop: '1px solid rgba(255,255,255,0.06)', color: '#F5F5F5' }}
