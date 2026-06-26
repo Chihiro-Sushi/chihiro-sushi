@@ -26,8 +26,8 @@ const inputCls = 'w-full rounded-xl px-3.5 py-2.5 text-sm focus:outline-none foc
 const inputStyle = { backgroundColor: '#0d0d0d', border: '1px solid rgba(255,255,255,0.08)', color: '#F5F5F5' }
 const inputFocusStyle = { '--tw-ring-color': 'rgba(192,57,43,0.5)' } as React.CSSProperties
 
-function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={inputCls} style={{ ...inputStyle, ...inputFocusStyle }} />
+function TextInput({ style: styleProp, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
+  return <input {...props} className={inputCls} style={{ ...inputStyle, ...inputFocusStyle, ...styleProp }} />
 }
 
 function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {

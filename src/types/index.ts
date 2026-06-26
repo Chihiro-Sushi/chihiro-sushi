@@ -79,6 +79,7 @@ export interface ConfiguracionSitio {
   slogan: string
   telefono: string
   horario: string
+  tiempoEntrega?: string
   imagenPortada: string
   imagenesGaleria: string[]
   textoDestacado: string
@@ -86,6 +87,7 @@ export interface ConfiguracionSitio {
     facebook?: string
     instagram?: string
     whatsapp?: string
+    tiktok?: string
   }
   tarifaEnvioBase: number
   tarifaPorKm: number

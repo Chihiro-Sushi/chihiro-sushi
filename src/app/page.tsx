@@ -133,7 +133,7 @@ export default function HomePage() {
             Nuestro <span style={{ color: '#C0392B' }}>Menú</span>
           </h2>
           <p className="text-sm mb-6" style={{ color: '#9CA3AF' }}>
-            Solo disponible en delivery · {config.horario}
+            Solo disponible en delivery · {config.horario}{config.tiempoEntrega ? ` · Entrega en ${config.tiempoEntrega}` : ''}
           </p>
 
           {cargando ? (

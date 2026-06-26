@@ -12,6 +12,7 @@ export default function Footer({ config }: Props) {
   const whatsapp = config?.redesSociales?.whatsapp ?? '9843139064'
   const instagram = config?.redesSociales?.instagram ?? 'Sushi_Chihiro'
   const facebook = config?.redesSociales?.facebook ?? 'Chihiro Sushi'
+  const tiktok = config?.redesSociales?.tiktok ?? ''
 
   return (
     <footer id="contacto" className="bg-negro border-t border-rojo/20 pt-12 pb-8">
@@ -58,6 +59,12 @@ export default function Footer({ config }: Props) {
                 <a href={`https://instagram.com/${instagram}`} target="_blank" rel="noopener noreferrer"
                   className="hover:text-rojo transition-colors">📸 {instagram}</a>
               </li>
+              {tiktok && (
+                <li>
+                  <a href={tiktok} target="_blank" rel="noopener noreferrer"
+                    className="hover:text-rojo transition-colors">🎵 TikTok</a>
+                </li>
+              )}
             </ul>
           </div>
         </div>

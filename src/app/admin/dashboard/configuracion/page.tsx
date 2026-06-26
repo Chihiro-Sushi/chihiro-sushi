@@ -11,10 +11,11 @@ const CONFIG_INICIAL: ConfiguracionSitio = {
   slogan: '¡Un viaje de sabor en cada bocado!',
   telefono: '(984) 313 9064',
   horario: 'Lun–Dom 13:00–23:00 hrs',
+  tiempoEntrega: '45-50 min',
   imagenPortada: '',
   imagenesGaleria: [],
   textoDestacado: '🎉 3×2 todos los días — Sopas, Rollos, Yakimeshis y Kushiages',
-  redesSociales: { facebook: 'Chihiro Sushi', instagram: 'Sushi_Chihiro', whatsapp: '9843139064' },
+  redesSociales: { facebook: 'Chihiro Sushi', instagram: 'Sushi_Chihiro', whatsapp: '9843139064', tiktok: 'https://www.tiktok.com/@chihiro.sushi?_r=1&_t=ZS-97W0u0cybnZ' },
   tarifaEnvioBase: 30,
   tarifaPorKm: 10,
   kmMaximoEnvio: 15,
@@ -71,6 +72,8 @@ export default function ConfiguracionPage() {
             onChange={(e) => setConfig({ ...config, textoDestacado: e.target.value })} />
           <CampoInput label="Horario" value={config.horario}
             onChange={(e) => setConfig({ ...config, horario: e.target.value })} />
+          <CampoInput label="Tiempo de entrega (ej. 45-50 min)" value={config.tiempoEntrega ?? ''}
+            onChange={(e) => setConfig({ ...config, tiempoEntrega: e.target.value })} />
           <CampoInput label="Teléfono / WhatsApp" value={config.telefono}
             onChange={(e) => setConfig({ ...config, telefono: e.target.value })} />
         </section>
@@ -84,6 +87,8 @@ export default function ConfiguracionPage() {
             onChange={(e) => setConfig({ ...config, redesSociales: { ...config.redesSociales, instagram: e.target.value } })} />
           <CampoInput label="WhatsApp (número sin +52)" value={config.redesSociales.whatsapp ?? ''}
             onChange={(e) => setConfig({ ...config, redesSociales: { ...config.redesSociales, whatsapp: e.target.value } })} />
+          <CampoInput label="TikTok (URL completa)" value={config.redesSociales.tiktok ?? ''}
+            onChange={(e) => setConfig({ ...config, redesSociales: { ...config.redesSociales, tiktok: e.target.value } })} />
         </section>
 
         {/* Tarifas de envío */}
