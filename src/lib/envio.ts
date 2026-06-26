@@ -3,22 +3,25 @@ export const RESTAURANTE_COORDS = {
   lng: -87.0755267,
 }
 
-// Tarifario por tramos (MXN). Máximo 13 km; fuera de zona retorna null.
-const TRAMOS: { maxKm: number; costo: number }[] = [
-  { maxKm: 3,  costo: 40 },
-  { maxKm: 5,  costo: 50 },
-  { maxKm: 7,  costo: 60 },
-  { maxKm: 9,  costo: 70 },
-  { maxKm: 11, costo: 80 },
-  { maxKm: 13, costo: 95 },
+// Tarifario por tramos (MXN). Rangos exactos según tarifario oficial.
+// Después de 13.1 km la tarifa es especial (cotizar con administración).
+const TRAMOS: { minKm: number; maxKm: number; costo: number }[] = [
+  { minKm: 0,    maxKm: 3.0,  costo: 40 },
+  { minKm: 3.1,  maxKm: 5.0,  costo: 50 },
+  { minKm: 5.1,  maxKm: 7.0,  costo: 60 },
+  { minKm: 7.1,  maxKm: 9.0,  costo: 70 },
+  { minKm: 9.1,  maxKm: 11.0, costo: 80 },
+  { minKm: 11.1, maxKm: 13.0, costo: 95 },
 ]
 
 export const KM_MAXIMO_ENVIO = 13
 
 // Retorna el costo de envío según el tramo correspondiente,
 // o null si la distancia supera el área de cobertura.
+// Se redondea a 1 decimal para coincidir exactamente con los rangos del tarifario.
 export function calcularCostoEnvio(distanciaKm: number): number | null {
-  const tramo = TRAMOS.find((t) => distanciaKm <= t.maxKm)
+  const d = Math.round(distanciaKm * 10) / 10
+  const tramo = TRAMOS.find((t) => d >= t.minKm && d <= t.maxKm)
   return tramo ? tramo.costo : null
 }
 
