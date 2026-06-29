@@ -61,14 +61,6 @@ export default function ItemCard({ item }: Props) {
           </span>
         </div>
       )}
-      {promoActiva && !noDisponible && (
-        <div className="absolute top-2.5 left-2.5 z-10">
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
-            style={{ backgroundColor: 'rgba(192,57,43,0.88)', color: '#F5F5F5', boxShadow: '0 2px 6px rgba(192,57,43,0.4)' }}>
-            🎉 {promoActiva.nombre}
-          </span>
-        </div>
-      )}
       {item.imagenUrl && (
         <div className="w-28 md:w-full aspect-square overflow-hidden shrink-0">
           <img
@@ -89,6 +81,12 @@ export default function ItemCard({ item }: Props) {
                 <p className="text-gris text-xs mt-1 leading-relaxed whitespace-pre-line">
                   {item.descripcion}
                 </p>
+              )}
+              {promoActiva && !noDisponible && (
+                <span className="inline-block mt-1.5 text-xs font-semibold px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: 'rgba(192,57,43,0.2)', color: '#F87171', border: '1px solid rgba(192,57,43,0.35)' }}>
+                  🎉 {promoActiva.nombre}
+                </span>
               )}
               {item.etiquetas && item.etiquetas.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
