@@ -8,6 +8,12 @@ import MapaPicker from '@/components/checkout/MapaPicker'
 import { ShoppingBag, CreditCard, Banknote, Loader2, AlertCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
+const CONDOMINIOS = [
+  'Corasol', 'Playacar', 'Mayakoba', 'El Cielo', 'Baiantun',
+  'Loltun', 'Lolkatun', 'XCALACOCO', 'Selvamar', 'Tigrillo-Campestre',
+  'Cristo Rey', 'BALI', 'THULA',
+]
+
 type MetodoPago = 'efectivo' | 'tarjeta'
 
 interface DireccionData {
@@ -31,6 +37,7 @@ export default function CheckoutPage() {
   const [zonaRestringida, setZonaRestringida] = useState('')
   const [calculandoEnvio, setCalculandoEnvio] = useState(false)
   const [pagoEfectivo, setPagoEfectivo] = useState<'exacto' | 'cambio' | null>(null)
+  const [condominioSeleccionado, setCondominioSeleccionado] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
 
@@ -217,7 +224,41 @@ export default function CheckoutPage() {
           {/* Dirección */}
           <div className="rounded-xl p-5 space-y-4" style={{ backgroundColor: '#141414', border: '1px solid rgba(255,255,255,0.06)' }}>
             <h2 className="font-semibold" style={{ color: '#F5F5F5' }}>Dirección de entrega</h2>
-            <MapaPicker onChange={handleDireccionChange} />
+
+            {/* Selector rápido de condominios */}
+            <div className="space-y-2">
+              <p className="text-xs font-medium" style={{ color: '#9CA3AF' }}>¿Vives en uno de estos condominios?</p>
+              <div className="flex flex-wrap gap-2">
+                {CONDOMINIOS.map((nombre) => {
+                  const sel = condominioSeleccionado === nombre
+                  return (
+                    <button
+                      key={nombre}
+                      type="button"
+                      onClick={() => setCondominioSeleccionado(sel ? null : nombre)}
+                      className="text-xs px-3 py-1.5 rounded-full transition-all duration-150 hover:scale-105 active:scale-95"
+                      style={{
+                        border: sel ? '1.5px solid #C0392B' : '1.5px solid rgba(255,255,255,0.1)',
+                        backgroundColor: sel ? 'rgba(192,57,43,0.15)' : 'transparent',
+                        color: sel ? '#C0392B' : '#9CA3AF',
+                      }}
+                    >
+                      {nombre}
+                    </button>
+                  )
+                })}
+              </div>
+              {condominioSeleccionado && (
+                <p className="text-xs" style={{ color: 'rgba(156,163,175,0.6)' }}>
+                  Selecciona tu dirección exacta en los resultados del mapa.
+                </p>
+              )}
+            </div>
+
+            <MapaPicker
+              onChange={handleDireccionChange}
+              queryExterna={condominioSeleccionado ? `${condominioSeleccionado} Playa del Carmen` : undefined}
+            />
             {costoEnvio !== null && !calculandoEnvio && (
               <div className="flex items-center justify-between text-sm rounded-lg px-4 py-3"
                 style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.2)' }}>

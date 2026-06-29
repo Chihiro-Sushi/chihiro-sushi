@@ -10,6 +10,7 @@ interface Props {
     coordenadas: { lat: number; lng: number }
     distanciaKm: number
   }) => void
+  queryExterna?: string
 }
 
 interface Sugerencia {
@@ -19,13 +20,14 @@ interface Sugerencia {
   lon: string
 }
 
-export default function MapaPicker({ onChange }: Props) {
+export default function MapaPicker({ onChange, queryExterna }: Props) {
   const mapRef = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const markerRef = useRef<any>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const prevQueryExternaRef = useRef<string | undefined>(undefined)
 
   const [busqueda, setBusqueda] = useState('')
   const [sugerencias, setSugerencias] = useState<Sugerencia[]>([])
@@ -100,6 +102,13 @@ export default function MapaPicker({ onChange }: Props) {
       }
     }, 500)
   }, [])
+
+  useEffect(() => {
+    if (!queryExterna || queryExterna === prevQueryExternaRef.current) return
+    prevQueryExternaRef.current = queryExterna
+    setBusqueda(queryExterna)
+    buscarDireccion(queryExterna)
+  }, [queryExterna, buscarDireccion])
 
   async function colocarMarcador(lat: number, lng: number, direccion: string) {
     const L = (await import('leaflet')).default
