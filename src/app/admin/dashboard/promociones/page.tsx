@@ -280,7 +280,7 @@ export default function PromocionesPage() {
                 </label>
 
                 {/* Valor */}
-                {form.tipo !== '3x2' && (
+                {form.tipo !== '3x2' && form.tipo !== '2x1' && (
                   <label className="block space-y-1">
                     <span className="text-xs font-medium" style={{ color: '#9CA3AF' }}>
                       Valor ({form.tipo === 'porcentaje' ? '%' : '$'})
