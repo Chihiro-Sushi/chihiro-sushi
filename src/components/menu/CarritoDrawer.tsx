@@ -32,6 +32,9 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
 
   const descuentosPorItem = calcularDescuentoPorItem(items, promocionesActivas)
 
+  const hora = new Date().getHours()
+  const servicioSuspendido = hora < 14
+
   function irACheckout() {
     onCerrar()
     router.push('/checkout')
@@ -166,9 +169,16 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
               <span>Envío</span>
               <span>Se calcula al confirmar dirección</span>
             </div>
+            {servicioSuspendido && (
+              <div className="rounded-xl px-4 py-3 text-xs text-center"
+                style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.25)', color: '#F87171' }}>
+                Servicio disponible a partir de las 2:00 pm
+              </div>
+            )}
             <button
               onClick={irACheckout}
-              className="w-full bg-rojo hover:bg-rojo/80 text-blanco font-semibold py-3 rounded-xl transition-colors active:scale-95"
+              disabled={servicioSuspendido}
+              className="w-full bg-rojo text-blanco font-semibold py-3 rounded-xl transition-colors active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Hacer pedido — ${totalConDescuento.toFixed(2)}
             </button>

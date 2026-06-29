@@ -6,6 +6,14 @@ import type { Pedido } from '@/types'
 
 export async function POST(req: NextRequest) {
   try {
+    const hora = new Date().getHours()
+    if (hora < 14) {
+      return NextResponse.json(
+        { error: 'El servicio no está disponible entre las 12:00 am y las 2:00 pm.' },
+        { status: 503 }
+      )
+    }
+
     const configSnap = await adminDb.collection('configuracion').doc('sitio').get()
     if (configSnap.exists && configSnap.data()?.suspensionDelivery) {
       return NextResponse.json(

@@ -136,6 +136,9 @@ export default function CheckoutPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const hora = new Date().getHours()
+  const servicioSuspendido = hora < 14
+
   const totalSinComision = totalConDescuento + (costoEnvio ?? 0) + surcargoClimatico + surcargoCondominio
   const comisionStripe = metodoPago === 'tarjeta'
     ? Math.ceil(totalSinComision * 0.036 + 3)
@@ -146,6 +149,7 @@ export default function CheckoutPage() {
     e.preventDefault()
     setError('')
 
+    if (servicioSuspendido) { setError('El servicio no está disponible antes de las 2:00 pm'); return }
     if (!nombre.trim()) { setError('Ingresa tu nombre'); return }
     const soloDigitos = telefono.replace(/\D/g, '').replace(/^52/, '')
     if (soloDigitos.length !== 10) { setError('Ingresa un número de WhatsApp válido (10 dígitos)'); return }
@@ -553,6 +557,14 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          {servicioSuspendido && (
+            <div className="flex items-center gap-2 rounded-xl p-4 text-sm"
+              style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', color: '#F87171' }}>
+              <AlertCircle size={16} className="shrink-0" />
+              El servicio de entrega está disponible a partir de las 2:00 pm. Puedes preparar tu pedido y confirmarlo después.
+            </div>
+          )}
+
           {error && (
             <div className="flex items-center gap-2 rounded-xl p-4 text-sm"
               style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', color: '#F87171' }}>
@@ -565,6 +577,7 @@ export default function CheckoutPage() {
             type="submit"
             disabled={
               enviando ||
+              servicioSuspendido ||
               !condominioRespondido ||
               inHouseBloqueado ||
               cristoReyRestringido ||
