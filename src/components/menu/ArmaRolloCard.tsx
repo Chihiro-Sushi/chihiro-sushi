@@ -18,6 +18,7 @@ const PROTEINAS = [
 
 const MAX_COMPLEMENTOS = 3
 const MAX_PROTEINAS = 2
+const PRECIO_EXTRA = 20
 
 export default function ArmaRolloCard({ item }: { item: MenuItem }) {
   const { agregar } = useCarrito()
@@ -31,9 +32,7 @@ export default function ArmaRolloCard({ item }: { item: MenuItem }) {
     setComplementos((prev) =>
       prev.includes(nombre)
         ? prev.filter((c) => c !== nombre)
-        : prev.length < MAX_COMPLEMENTOS
-        ? [...prev, nombre]
-        : prev
+        : [...prev, nombre]
     )
   }
 
@@ -41,18 +40,23 @@ export default function ArmaRolloCard({ item }: { item: MenuItem }) {
     setProteinas((prev) =>
       prev.includes(nombre)
         ? prev.filter((p) => p !== nombre)
-        : prev.length < MAX_PROTEINAS
-        ? [...prev, nombre]
-        : prev
+        : [...prev, nombre]
     )
   }
 
-  const listo = complementos.length === MAX_COMPLEMENTOS && proteinas.length === MAX_PROTEINAS
+  const extrasComplementos = Math.max(0, complementos.length - MAX_COMPLEMENTOS)
+  const extrasProteinas = Math.max(0, proteinas.length - MAX_PROTEINAS)
+  const totalExtras = extrasComplementos + extrasProteinas
+  const costoExtras = totalExtras * PRECIO_EXTRA
+  const precioTotal = item.precio + costoExtras
+
+  const listo = complementos.length >= MAX_COMPLEMENTOS && proteinas.length >= MAX_PROTEINAS
 
   function handleAgregar() {
     if (!listo) return
     const variante = `${proteinas.join(', ')} · ${complementos.join(', ')}`
-    agregar(item, variante, cantidad)
+    const itemFinal = costoExtras > 0 ? { ...item, precio: precioTotal } : item
+    agregar(itemFinal, variante, cantidad)
     const label = cantidad > 1 ? `${cantidad}× Arma Tu Rollo` : 'Arma Tu Rollo'
     mostrarToast(`${label} agregado al carrito`)
     setComplementos([])
@@ -78,9 +82,16 @@ export default function ArmaRolloCard({ item }: { item: MenuItem }) {
               Personaliza tu rollo — 10 piezas
             </p>
           </div>
-          <span className="font-bold text-lg shrink-0" style={{ color: '#C0392B' }}>
-            ${item.precio}
-          </span>
+          <div className="text-right">
+            <span className="font-bold text-lg shrink-0" style={{ color: costoExtras > 0 ? '#F59E0B' : '#C0392B' }}>
+              ${precioTotal}
+            </span>
+            {costoExtras > 0 && (
+              <p className="text-xs" style={{ color: '#9CA3AF' }}>
+                base ${item.precio} + ${costoExtras} extras
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Proteínas */}
@@ -89,34 +100,56 @@ export default function ArmaRolloCard({ item }: { item: MenuItem }) {
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#F5F5F5' }}>
               Proteínas
             </p>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+            <span
+              className="text-xs font-medium px-2 py-0.5 rounded-full"
               style={{
-                backgroundColor: proteinas.length === MAX_PROTEINAS ? 'rgba(192,57,43,0.15)' : 'rgba(255,255,255,0.05)',
-                color: proteinas.length === MAX_PROTEINAS ? '#C0392B' : '#9CA3AF',
-              }}>
+                backgroundColor:
+                  proteinas.length > MAX_PROTEINAS
+                    ? 'rgba(245,158,11,0.15)'
+                    : proteinas.length === MAX_PROTEINAS
+                    ? 'rgba(192,57,43,0.15)'
+                    : 'rgba(255,255,255,0.05)',
+                color:
+                  proteinas.length > MAX_PROTEINAS
+                    ? '#F59E0B'
+                    : proteinas.length === MAX_PROTEINAS
+                    ? '#C0392B'
+                    : '#9CA3AF',
+              }}
+            >
               {proteinas.length}/{MAX_PROTEINAS}
+              {extrasProteinas > 0 && ` +${extrasProteinas}×$${PRECIO_EXTRA}`}
             </span>
           </div>
+          {proteinas.length >= MAX_PROTEINAS && (
+            <p className="text-xs mb-2" style={{ color: 'rgba(245,158,11,0.7)' }}>
+              Ingredientes adicionales: $20 c/u
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             {PROTEINAS.map((p) => {
               const selec = proteinas.includes(p)
-              const bloqueado = !selec && proteinas.length >= MAX_PROTEINAS
+              const esExtra = selec && proteinas.indexOf(p) >= MAX_PROTEINAS
               return (
                 <button
                   key={p}
                   type="button"
                   onClick={() => toggleProteina(p)}
-                  disabled={bloqueado}
                   className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all duration-150 hover:scale-105 active:scale-95"
                   style={{
-                    border: selec ? '1.5px solid #C0392B' : '1.5px solid rgba(255,255,255,0.1)',
-                    backgroundColor: selec ? 'rgba(192,57,43,0.15)' : 'transparent',
-                    color: selec ? '#C0392B' : bloqueado ? 'rgba(156,163,175,0.3)' : '#9CA3AF',
-                    cursor: bloqueado ? 'not-allowed' : 'pointer',
+                    border: selec
+                      ? `1.5px solid ${esExtra ? '#F59E0B' : '#C0392B'}`
+                      : '1.5px solid rgba(255,255,255,0.1)',
+                    backgroundColor: selec
+                      ? esExtra ? 'rgba(245,158,11,0.15)' : 'rgba(192,57,43,0.15)'
+                      : 'transparent',
+                    color: selec ? (esExtra ? '#F59E0B' : '#C0392B') : '#9CA3AF',
+                    cursor: 'pointer',
                   }}
                 >
                   {selec && <Check size={11} />}
                   {p}
+                  {esExtra && <span className="ml-0.5" style={{ color: '#F59E0B', fontSize: '10px' }}>+$20</span>}
                 </button>
               )
             })}
@@ -129,34 +162,56 @@ export default function ArmaRolloCard({ item }: { item: MenuItem }) {
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#F5F5F5' }}>
               Complementos
             </p>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+            <span
+              className="text-xs font-medium px-2 py-0.5 rounded-full"
               style={{
-                backgroundColor: complementos.length === MAX_COMPLEMENTOS ? 'rgba(192,57,43,0.15)' : 'rgba(255,255,255,0.05)',
-                color: complementos.length === MAX_COMPLEMENTOS ? '#C0392B' : '#9CA3AF',
-              }}>
+                backgroundColor:
+                  complementos.length > MAX_COMPLEMENTOS
+                    ? 'rgba(245,158,11,0.15)'
+                    : complementos.length === MAX_COMPLEMENTOS
+                    ? 'rgba(192,57,43,0.15)'
+                    : 'rgba(255,255,255,0.05)',
+                color:
+                  complementos.length > MAX_COMPLEMENTOS
+                    ? '#F59E0B'
+                    : complementos.length === MAX_COMPLEMENTOS
+                    ? '#C0392B'
+                    : '#9CA3AF',
+              }}
+            >
               {complementos.length}/{MAX_COMPLEMENTOS}
+              {extrasComplementos > 0 && ` +${extrasComplementos}×$${PRECIO_EXTRA}`}
             </span>
           </div>
+          {complementos.length >= MAX_COMPLEMENTOS && (
+            <p className="text-xs mb-2" style={{ color: 'rgba(245,158,11,0.7)' }}>
+              Ingredientes adicionales: $20 c/u
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             {COMPLEMENTOS.map((c) => {
               const selec = complementos.includes(c)
-              const bloqueado = !selec && complementos.length >= MAX_COMPLEMENTOS
+              const esExtra = selec && complementos.indexOf(c) >= MAX_COMPLEMENTOS
               return (
                 <button
                   key={c}
                   type="button"
                   onClick={() => toggleComplemento(c)}
-                  disabled={bloqueado}
                   className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all duration-150 hover:scale-105 active:scale-95"
                   style={{
-                    border: selec ? '1.5px solid #C0392B' : '1.5px solid rgba(255,255,255,0.1)',
-                    backgroundColor: selec ? 'rgba(192,57,43,0.15)' : 'transparent',
-                    color: selec ? '#C0392B' : bloqueado ? 'rgba(156,163,175,0.3)' : '#9CA3AF',
-                    cursor: bloqueado ? 'not-allowed' : 'pointer',
+                    border: selec
+                      ? `1.5px solid ${esExtra ? '#F59E0B' : '#C0392B'}`
+                      : '1.5px solid rgba(255,255,255,0.1)',
+                    backgroundColor: selec
+                      ? esExtra ? 'rgba(245,158,11,0.15)' : 'rgba(192,57,43,0.15)'
+                      : 'transparent',
+                    color: selec ? (esExtra ? '#F59E0B' : '#C0392B') : '#9CA3AF',
+                    cursor: 'pointer',
                   }}
                 >
                   {selec && <Check size={11} />}
                   {c}
+                  {esExtra && <span className="ml-0.5" style={{ color: '#F59E0B', fontSize: '10px' }}>+$20</span>}
                 </button>
               )
             })}
@@ -165,8 +220,10 @@ export default function ArmaRolloCard({ item }: { item: MenuItem }) {
 
         {/* Resumen selección */}
         {(proteinas.length > 0 || complementos.length > 0) && (
-          <div className="mt-4 rounded-lg px-3 py-2.5 text-xs space-y-1"
-            style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div
+            className="mt-4 rounded-lg px-3 py-2.5 text-xs space-y-1"
+            style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+          >
             {proteinas.length > 0 && (
               <p style={{ color: '#9CA3AF' }}>
                 <span style={{ color: '#F5F5F5' }}>Proteínas:</span> {proteinas.join(', ')}
@@ -175,6 +232,11 @@ export default function ArmaRolloCard({ item }: { item: MenuItem }) {
             {complementos.length > 0 && (
               <p style={{ color: '#9CA3AF' }}>
                 <span style={{ color: '#F5F5F5' }}>Complementos:</span> {complementos.join(', ')}
+              </p>
+            )}
+            {costoExtras > 0 && (
+              <p style={{ color: '#F59E0B' }}>
+                +{totalExtras} ingrediente{totalExtras > 1 ? 's' : ''} extra{totalExtras > 1 ? 's' : ''}: +${costoExtras}
               </p>
             )}
           </div>
@@ -218,8 +280,13 @@ export default function ArmaRolloCard({ item }: { item: MenuItem }) {
             <><Check size={16} /> Agregado</>
           ) : (
             <><Plus size={16} /> {listo
-              ? (cantidad > 1 ? `Agregar × ${cantidad}` : 'Agregar al carrito')
-              : `Elige ${MAX_PROTEINAS - proteinas.length > 0 ? `${MAX_PROTEINAS - proteinas.length} proteína${MAX_PROTEINAS - proteinas.length > 1 ? 's' : ''}` : `${MAX_COMPLEMENTOS - complementos.length} complemento${MAX_COMPLEMENTOS - complementos.length > 1 ? 's' : ''}`} más`
+              ? costoExtras > 0
+                ? (cantidad > 1 ? `Agregar × ${cantidad} — $${precioTotal * cantidad}` : `Agregar — $${precioTotal}`)
+                : (cantidad > 1 ? `Agregar × ${cantidad}` : 'Agregar al carrito')
+              : `Elige ${MAX_PROTEINAS - proteinas.length > 0
+                  ? `${MAX_PROTEINAS - proteinas.length} proteína${MAX_PROTEINAS - proteinas.length > 1 ? 's' : ''}`
+                  : `${MAX_COMPLEMENTOS - complementos.length} complemento${MAX_COMPLEMENTOS - complementos.length > 1 ? 's' : ''}`
+                } más`
             }</>
           )}
         </button>
