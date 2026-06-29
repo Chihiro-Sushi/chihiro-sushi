@@ -66,7 +66,7 @@ export interface Promocion {
   id: string
   nombre: string
   descripcion: string
-  tipo: '3x2' | 'porcentaje' | 'fijo'
+  tipo: '3x2' | '2x1' | 'porcentaje' | 'fijo'
   valor?: number
   categoriaIds?: string[]
   itemIds?: string[]

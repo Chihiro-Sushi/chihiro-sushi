@@ -19,6 +19,7 @@ function etiquetaDescuento(promociones: Promocion[]): string {
   if (tipos.length > 1) return 'Múltiples promociones'
   const tipo = tipos[0]
   if (tipo === '3x2') return 'Promo 3×2'
+  if (tipo === '2x1') return 'Promo 2×1'
   const promo = activas.find((p) => p.tipo === tipo)
   if (tipo === 'porcentaje') return `${promo?.valor ?? ''}% OFF`
   if (tipo === 'fijo') return `-$${promo?.valor ?? ''} fijo`

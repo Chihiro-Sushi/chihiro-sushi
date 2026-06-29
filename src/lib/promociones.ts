@@ -70,6 +70,25 @@ export function calcularDescuentoPorItem(
           etiqueta: 'Promo 3×2 aplicada',
         })
       }
+    } else if (promo.tipo === '2x1') {
+      const unidades: { clave: string; precio: number }[] = []
+      for (const item of items) {
+        if (itemCalifica(item, promo)) {
+          const clave = item.variante ? `${item.itemId}__${item.variante}` : item.itemId
+          for (let i = 0; i < item.cantidad; i++) {
+            unidades.push({ clave, precio: item.precioUnitario })
+          }
+        }
+      }
+      unidades.sort((a, b) => b.precio - a.precio)
+      for (let i = 1; i < unidades.length; i += 2) {
+        const { clave, precio } = unidades[i]
+        const prev = resultado.get(clave)
+        resultado.set(clave, {
+          descuento: Math.round(((prev?.descuento ?? 0) + precio) * 100) / 100,
+          etiqueta: 'Promo 2×1 aplicada',
+        })
+      }
     } else if (promo.tipo === 'porcentaje' && promo.valor) {
       for (const item of items) {
         if (itemCalifica(item, promo)) {
@@ -106,7 +125,6 @@ export function calcularDescuento(items: ItemCarrito[], promociones: Promocion[]
 
   for (const promo of activas) {
     if (promo.tipo === '3x2') {
-      // Recolectar todas las unidades calificadas con su precio unitario
       const unidades: number[] = []
       for (const item of items) {
         if (itemCalifica(item, promo)) {
@@ -115,9 +133,21 @@ export function calcularDescuento(items: ItemCarrito[], promociones: Promocion[]
           }
         }
       }
-      // Ordenar de mayor a menor, cada 3ra unidad (la más barata del grupo) es gratis
       unidades.sort((a, b) => b - a)
       for (let i = 2; i < unidades.length; i += 3) {
+        descuento += unidades[i]
+      }
+    } else if (promo.tipo === '2x1') {
+      const unidades: number[] = []
+      for (const item of items) {
+        if (itemCalifica(item, promo)) {
+          for (let i = 0; i < item.cantidad; i++) {
+            unidades.push(item.precioUnitario)
+          }
+        }
+      }
+      unidades.sort((a, b) => b - a)
+      for (let i = 1; i < unidades.length; i += 2) {
         descuento += unidades[i]
       }
     } else if (promo.tipo === 'porcentaje' && promo.valor) {

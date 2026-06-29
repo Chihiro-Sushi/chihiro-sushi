@@ -273,6 +273,7 @@ export default function PromocionesPage() {
                     style={INPUT_STYLE}
                   >
                     <option value="3x2">3×2 — lleva 3, paga 2</option>
+                    <option value="2x1">2×1 — lleva 2, paga 1</option>
                     <option value="porcentaje">Descuento en %</option>
                     <option value="fijo">Descuento fijo ($)</option>
                   </select>
@@ -467,7 +468,7 @@ export default function PromocionesPage() {
                 )}
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
                   <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(192,57,43,0.1)', color: '#C0392B' }}>
-                    {p.tipo === '3x2' ? '3×2' : p.tipo === 'porcentaje' ? `${p.valor}% OFF` : `-$${p.valor}`}
+                    {p.tipo === '3x2' ? '3×2' : p.tipo === '2x1' ? '2×1' : p.tipo === 'porcentaje' ? `${p.valor}% OFF` : `-$${p.valor}`}
                   </span>
                   <button
                     onClick={() => toggleActiva(p)}
