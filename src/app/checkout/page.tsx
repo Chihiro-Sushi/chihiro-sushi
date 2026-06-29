@@ -12,6 +12,7 @@ interface CondominioInfo {
   nombre: string
   coords?: { lat: number; lng: number }
   entradaOpcional?: boolean
+  bloqueado?: boolean
 }
 
 const CONDOMINIOS_INFO: CondominioInfo[] = [
@@ -28,6 +29,7 @@ const CONDOMINIOS_INFO: CondominioInfo[] = [
   { nombre: 'Cristo Rey' },
   { nombre: 'BALI', entradaOpcional: true },
   { nombre: 'THULA', coords: { lat: 20.6101347, lng: -87.1163146 }, entradaOpcional: true },
+  { nombre: 'In House', bloqueado: true },
 ]
 
 type MetodoPago = 'efectivo' | 'tarjeta'
@@ -54,6 +56,7 @@ export default function CheckoutPage() {
   const [calculandoEnvio, setCalculandoEnvio] = useState(false)
   const [pagoEfectivo, setPagoEfectivo] = useState<'exacto' | 'cambio' | null>(null)
   const [condominioSeleccionado, setCondominioSeleccionado] = useState<string | null>(null)
+  const [condominioRespondido, setCondominioRespondido] = useState(false)
   const [entradaCondominio, setEntradaCondominio] = useState<'carretera_federal' | 'la_joya' | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
@@ -62,8 +65,10 @@ export default function CheckoutPage() {
     ? CONDOMINIOS_INFO.find((c) => c.nombre === condominioSeleccionado)
     : null
 
+  const inHouseBloqueado = condominioSeleccionado === 'In House'
+
   const surcargoCondominio = (() => {
-    if (!condominioSeleccionado) return 0
+    if (!condominioSeleccionado || condominioInfo?.bloqueado) return 0
     if (condominioInfo?.entradaOpcional) {
       if (entradaCondominio === 'carretera_federal') return 20
       if (entradaCondominio === 'la_joya') return 10
@@ -76,7 +81,7 @@ export default function CheckoutPage() {
     condominioSeleccionado === 'Cristo Rey' && new Date().getHours() >= 18
 
   const mapQueryExterna =
-    condominioSeleccionado && !condominioInfo?.coords
+    condominioSeleccionado && !condominioInfo?.coords && !condominioInfo?.bloqueado
       ? `${condominioSeleccionado} Playa del Carmen`
       : undefined
 
@@ -84,8 +89,9 @@ export default function CheckoutPage() {
     ? { ...condominioInfo.coords, nombre: condominioSeleccionado! }
     : undefined
 
-  function handleSelectCondominio(nombre: string) {
-    setCondominioSeleccionado((prev) => (prev === nombre ? null : nombre))
+  function handleSelectCondominio(nombre: string | null) {
+    setCondominioSeleccionado(nombre)
+    setCondominioRespondido(true)
     setEntradaCondominio(null)
   }
 
@@ -143,10 +149,12 @@ export default function CheckoutPage() {
     if (!nombre.trim()) { setError('Ingresa tu nombre'); return }
     const soloDigitos = telefono.replace(/\D/g, '').replace(/^52/, '')
     if (soloDigitos.length !== 10) { setError('Ingresa un número de WhatsApp válido (10 dígitos)'); return }
+    if (!condominioRespondido) { setError('Indica si vives en un condominio de la lista'); return }
+    if (inHouseBloqueado) { setError('No realizamos envíos a la zona de In House'); return }
+    if (cristoReyRestringido) { setError('Debido al horario, no hay servicio en Cristo Rey en este momento'); return }
     if (!direccionData) { setError('Selecciona tu dirección en el mapa'); return }
     if (items.length === 0) { setError('Tu carrito está vacío'); return }
     if (metodoPago === 'efectivo' && !pagoEfectivo) { setError('Selecciona si traes el monto exacto o necesitas cambio'); return }
-    if (cristoReyRestringido) { setError('No realizamos entregas a Cristo Rey después de las 6:00 pm.'); return }
     if (condominioInfo?.entradaOpcional && !entradaCondominio) {
       setError(`Selecciona la entrada para ${condominioSeleccionado}`)
       return
@@ -283,9 +291,11 @@ export default function CheckoutPage() {
 
             {/* Selector rápido de condominios */}
             <div className="space-y-2">
-              <p className="text-xs font-medium" style={{ color: '#9CA3AF' }}>¿Vives en uno de estos condominios?</p>
+              <p className="text-xs font-medium" style={{ color: '#9CA3AF' }}>
+                ¿Vives en uno de estos condominios? <span style={{ color: '#C0392B' }}>*</span>
+              </p>
               <div className="flex flex-wrap gap-2">
-                {CONDOMINIOS_INFO.map(({ nombre: nom }) => {
+                {CONDOMINIOS_INFO.map(({ nombre: nom, bloqueado }) => {
                   const sel = condominioSeleccionado === nom
                   return (
                     <button
@@ -294,23 +304,61 @@ export default function CheckoutPage() {
                       onClick={() => handleSelectCondominio(nom)}
                       className="text-xs px-3 py-1.5 rounded-full transition-all duration-150 hover:scale-105 active:scale-95"
                       style={{
-                        border: sel ? '1.5px solid #C0392B' : '1.5px solid rgba(255,255,255,0.1)',
-                        backgroundColor: sel ? 'rgba(192,57,43,0.15)' : 'transparent',
-                        color: sel ? '#C0392B' : '#9CA3AF',
+                        border: sel
+                          ? `1.5px solid ${bloqueado ? '#F87171' : '#C0392B'}`
+                          : '1.5px solid rgba(255,255,255,0.1)',
+                        backgroundColor: sel
+                          ? bloqueado ? 'rgba(248,113,113,0.12)' : 'rgba(192,57,43,0.15)'
+                          : 'transparent',
+                        color: sel
+                          ? bloqueado ? '#F87171' : '#C0392B'
+                          : bloqueado ? 'rgba(248,113,113,0.5)' : '#9CA3AF',
                       }}
                     >
                       {nom}
                     </button>
                   )
                 })}
+                {/* Opción: no vive en ningún condominio */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectCondominio(null)}
+                  className="text-xs px-3 py-1.5 rounded-full transition-all duration-150 hover:scale-105 active:scale-95"
+                  style={{
+                    border: condominioRespondido && !condominioSeleccionado
+                      ? '1.5px solid rgba(255,255,255,0.35)'
+                      : '1.5px solid rgba(255,255,255,0.1)',
+                    backgroundColor: condominioRespondido && !condominioSeleccionado
+                      ? 'rgba(255,255,255,0.07)'
+                      : 'transparent',
+                    color: condominioRespondido && !condominioSeleccionado ? '#F5F5F5' : '#9CA3AF',
+                  }}
+                >
+                  No vivo en ninguno
+                </button>
               </div>
+
+              {!condominioRespondido && (
+                <p className="text-xs" style={{ color: 'rgba(248,113,113,0.7)' }}>
+                  Selecciona tu condominio o elige "No vivo en ninguno" para continuar.
+                </p>
+              )}
+
+              {/* Mensaje bloqueante: In House */}
+              {inHouseBloqueado && (
+                <div className="flex items-center gap-2 text-xs rounded-lg px-3 py-2"
+                  style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', color: '#F87171' }}>
+                  <AlertCircle size={13} className="shrink-0" />
+                  Por el momento no realizamos envíos a la zona de In House.
+                </div>
+              )}
 
               {/* Advertencia Cristo Rey después de las 6pm */}
               {cristoReyRestringido && (
                 <div className="flex items-center gap-2 text-xs rounded-lg px-3 py-2"
                   style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', color: '#F87171' }}>
                   <AlertCircle size={13} className="shrink-0" />
-                  No realizamos entregas a Cristo Rey después de las 6:00 pm.
+                  Debido al horario, no hay servicio en Cristo Rey en este momento. Vuelve antes de las 6:00 pm.
                 </div>
               )}
 
@@ -346,7 +394,7 @@ export default function CheckoutPage() {
               )}
 
               {/* Sugerencia para condominios sin coords hardcodeadas */}
-              {condominioSeleccionado && !condominioInfo?.entradaOpcional && !cristoReyRestringido && (
+              {condominioSeleccionado && !condominioInfo?.entradaOpcional && !cristoReyRestringido && !inHouseBloqueado && (
                 <p className="text-xs" style={{ color: 'rgba(156,163,175,0.6)' }}>
                   Selecciona tu dirección exacta en los resultados del mapa.
                 </p>
@@ -517,12 +565,14 @@ export default function CheckoutPage() {
             type="submit"
             disabled={
               enviando ||
+              !condominioRespondido ||
+              inHouseBloqueado ||
+              cristoReyRestringido ||
               !direccionData ||
               fueraDeZona ||
               !!zonaRestringida ||
               costoEnvio === null ||
               (metodoPago === 'efectivo' && !pagoEfectivo) ||
-              cristoReyRestringido ||
               (!!condominioInfo?.entradaOpcional && !entradaCondominio)
             }
             className="w-full py-4 rounded-xl font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
