@@ -11,6 +11,7 @@ interface Props {
     distanciaKm: number
   }) => void
   queryExterna?: string
+  coordenadasExternas?: { lat: number; lng: number; nombre: string }
 }
 
 interface Sugerencia {
@@ -20,7 +21,7 @@ interface Sugerencia {
   lon: string
 }
 
-export default function MapaPicker({ onChange, queryExterna }: Props) {
+export default function MapaPicker({ onChange, queryExterna, coordenadasExternas }: Props) {
   const mapRef = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null)
@@ -28,6 +29,7 @@ export default function MapaPicker({ onChange, queryExterna }: Props) {
   const markerRef = useRef<any>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const prevQueryExternaRef = useRef<string | undefined>(undefined)
+  const prevCoordsKeyRef = useRef<string | undefined>(undefined)
 
   const [busqueda, setBusqueda] = useState('')
   const [sugerencias, setSugerencias] = useState<Sugerencia[]>([])
@@ -74,6 +76,52 @@ export default function MapaPicker({ onChange, queryExterna }: Props) {
     }
   }, [])
 
+  const colocarMarcador = useCallback(async (lat: number, lng: number, direccion: string) => {
+    const L = (await import('leaflet')).default
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    map.setView([lat, lng], 16)
+    if (markerRef.current) markerRef.current.remove()
+
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:16px;height:16px;background:#C0392B;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.5)"></div>`,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    })
+
+    const marker = L.marker([lat, lng], { icon, draggable: true }).addTo(map)
+    markerRef.current = marker
+
+    const distanciaKm = calcularDistanciaKm(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, lat, lng)
+    onChange({ direccion, coordenadas: { lat, lng }, distanciaKm })
+
+    marker.on('dragend', async () => {
+      const pos = marker.getLatLng()
+      const newLat = pos.lat
+      const newLng = pos.lng
+      const newDistancia = calcularDistanciaKm(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, newLat, newLng)
+
+      let nuevaDireccion = direccion
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${newLat}&lon=${newLng}&format=json`,
+          { headers: { 'Accept-Language': 'es', 'User-Agent': 'ChihiroSushiApp/1.0' } }
+        )
+        const data = await res.json()
+        if (data.display_name) {
+          nuevaDireccion = data.display_name
+          setBusqueda(data.display_name)
+        }
+      } catch {
+        // mantiene la dirección anterior si falla
+      }
+
+      onChange({ direccion: nuevaDireccion, coordenadas: { lat: newLat, lng: newLng }, distanciaKm: newDistancia })
+    })
+  }, [onChange])
+
   const buscarDireccion = useCallback((query: string) => {
     setSugerencias([])
     if (query.trim().length < 4) return
@@ -103,6 +151,7 @@ export default function MapaPicker({ onChange, queryExterna }: Props) {
     }, 500)
   }, [])
 
+  // Pre-llena la búsqueda cuando se selecciona un condominio sin coords hardcodeadas
   useEffect(() => {
     if (!queryExterna || queryExterna === prevQueryExternaRef.current) return
     prevQueryExternaRef.current = queryExterna
@@ -110,52 +159,16 @@ export default function MapaPicker({ onChange, queryExterna }: Props) {
     buscarDireccion(queryExterna)
   }, [queryExterna, buscarDireccion])
 
-  async function colocarMarcador(lat: number, lng: number, direccion: string) {
-    const L = (await import('leaflet')).default
-    const map = mapInstanceRef.current
-    if (!map) return
-
-    map.setView([lat, lng], 16)
-    if (markerRef.current) markerRef.current.remove()
-
-    const icon = L.divIcon({
-      className: '',
-      html: `<div style="width:16px;height:16px;background:#C0392B;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.5)"></div>`,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8],
-    })
-
-    const marker = L.marker([lat, lng], { icon, draggable: true }).addTo(map)
-    markerRef.current = marker
-
-    const distanciaKm = calcularDistanciaKm(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, lat, lng)
-    onChange({ direccion, coordenadas: { lat, lng }, distanciaKm })
-
-    marker.on('dragend', async () => {
-      const pos = marker.getLatLng()
-      const newLat = pos.lat
-      const newLng = pos.lng
-      const newDistancia = calcularDistanciaKm(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, newLat, newLng)
-
-      // Geocodificación inversa para obtener la dirección del punto arrastrado
-      let nuevaDireccion = direccion
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${newLat}&lon=${newLng}&format=json`,
-          { headers: { 'Accept-Language': 'es', 'User-Agent': 'ChihiroSushiApp/1.0' } }
-        )
-        const data = await res.json()
-        if (data.display_name) {
-          nuevaDireccion = data.display_name
-          setBusqueda(data.display_name)
-        }
-      } catch {
-        // mantiene la dirección anterior si falla
-      }
-
-      onChange({ direccion: nuevaDireccion, coordenadas: { lat: newLat, lng: newLng }, distanciaKm: newDistancia })
-    })
-  }
+  // Coloca el pin directamente cuando se selecciona un condominio con coords hardcodeadas
+  useEffect(() => {
+    if (!coordenadasExternas) return
+    const key = `${coordenadasExternas.lat},${coordenadasExternas.lng}`
+    if (key === prevCoordsKeyRef.current) return
+    prevCoordsKeyRef.current = key
+    setBusqueda(coordenadasExternas.nombre)
+    setSugerencias([])
+    colocarMarcador(coordenadasExternas.lat, coordenadasExternas.lng, coordenadasExternas.nombre)
+  }, [coordenadasExternas, colocarMarcador])
 
   async function seleccionarSugerencia(s: Sugerencia) {
     setBusqueda(s.display_name)

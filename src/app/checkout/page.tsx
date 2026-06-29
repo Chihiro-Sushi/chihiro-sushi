@@ -8,10 +8,26 @@ import MapaPicker from '@/components/checkout/MapaPicker'
 import { ShoppingBag, CreditCard, Banknote, Loader2, AlertCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-const CONDOMINIOS = [
-  'Corasol', 'Playacar', 'Mayakoba', 'El Cielo', 'Baiantun',
-  'Loltun', 'Lolkatun', 'XCALACOCO', 'Selvamar', 'Tigrillo-Campestre',
-  'Cristo Rey', 'BALI', 'THULA',
+interface CondominioInfo {
+  nombre: string
+  coords?: { lat: number; lng: number }
+  entradaOpcional?: boolean
+}
+
+const CONDOMINIOS_INFO: CondominioInfo[] = [
+  { nombre: 'Corasol' },
+  { nombre: 'Playacar' },
+  { nombre: 'Mayakoba' },
+  { nombre: 'El Cielo' },
+  { nombre: 'Baiantun' },
+  { nombre: 'Loltun', coords: { lat: 20.6725, lng: -87.048 } },
+  { nombre: 'LolKaaTun', coords: { lat: 20.669, lng: -87.040 } },
+  { nombre: 'XCALACOCO' },
+  { nombre: 'Selvamar' },
+  { nombre: 'Tigrillo-Campestre', coords: { lat: 20.6150650, lng: -87.1021010 } },
+  { nombre: 'Cristo Rey' },
+  { nombre: 'BALI', entradaOpcional: true },
+  { nombre: 'THULA', coords: { lat: 20.6101347, lng: -87.1163146 }, entradaOpcional: true },
 ]
 
 type MetodoPago = 'efectivo' | 'tarjeta'
@@ -38,8 +54,40 @@ export default function CheckoutPage() {
   const [calculandoEnvio, setCalculandoEnvio] = useState(false)
   const [pagoEfectivo, setPagoEfectivo] = useState<'exacto' | 'cambio' | null>(null)
   const [condominioSeleccionado, setCondominioSeleccionado] = useState<string | null>(null)
+  const [entradaCondominio, setEntradaCondominio] = useState<'carretera_federal' | 'la_joya' | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
+
+  const condominioInfo = condominioSeleccionado
+    ? CONDOMINIOS_INFO.find((c) => c.nombre === condominioSeleccionado)
+    : null
+
+  const surcargoCondominio = (() => {
+    if (!condominioSeleccionado) return 0
+    if (condominioInfo?.entradaOpcional) {
+      if (entradaCondominio === 'carretera_federal') return 20
+      if (entradaCondominio === 'la_joya') return 10
+      return 0
+    }
+    return 10
+  })()
+
+  const cristoReyRestringido =
+    condominioSeleccionado === 'Cristo Rey' && new Date().getHours() >= 18
+
+  const mapQueryExterna =
+    condominioSeleccionado && !condominioInfo?.coords
+      ? `${condominioSeleccionado} Playa del Carmen`
+      : undefined
+
+  const mapCoordsExternas = condominioInfo?.coords
+    ? { ...condominioInfo.coords, nombre: condominioSeleccionado! }
+    : undefined
+
+  function handleSelectCondominio(nombre: string) {
+    setCondominioSeleccionado((prev) => (prev === nombre ? null : nombre))
+    setEntradaCondominio(null)
+  }
 
   function validarZona(direccion: string): string {
     const dir = direccion.toLowerCase()
@@ -82,7 +130,7 @@ export default function CheckoutPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const totalSinComision = totalConDescuento + (costoEnvio ?? 0) + surcargoClimatico
+  const totalSinComision = totalConDescuento + (costoEnvio ?? 0) + surcargoClimatico + surcargoCondominio
   const comisionStripe = metodoPago === 'tarjeta'
     ? Math.ceil(totalSinComision * 0.036 + 3)
     : 0
@@ -98,6 +146,11 @@ export default function CheckoutPage() {
     if (!direccionData) { setError('Selecciona tu dirección en el mapa'); return }
     if (items.length === 0) { setError('Tu carrito está vacío'); return }
     if (metodoPago === 'efectivo' && !pagoEfectivo) { setError('Selecciona si traes el monto exacto o necesitas cambio'); return }
+    if (cristoReyRestringido) { setError('No realizamos entregas a Cristo Rey después de las 6:00 pm.'); return }
+    if (condominioInfo?.entradaOpcional && !entradaCondominio) {
+      setError(`Selecciona la entrada para ${condominioSeleccionado}`)
+      return
+    }
 
     setEnviando(true)
 
@@ -113,6 +166,9 @@ export default function CheckoutPage() {
         subtotal: total,
         costoEnvio: costoEnvio ?? 0,
         surcargoClimatico,
+        surcargoCondominio,
+        ...(condominioSeleccionado ? { condominio: condominioSeleccionado } : {}),
+        ...(entradaCondominio ? { entradaCondominio } : {}),
         descuento,
         comisionTarjeta: comisionStripe,
         total: totalFinal,
@@ -229,13 +285,13 @@ export default function CheckoutPage() {
             <div className="space-y-2">
               <p className="text-xs font-medium" style={{ color: '#9CA3AF' }}>¿Vives en uno de estos condominios?</p>
               <div className="flex flex-wrap gap-2">
-                {CONDOMINIOS.map((nombre) => {
-                  const sel = condominioSeleccionado === nombre
+                {CONDOMINIOS_INFO.map(({ nombre: nom }) => {
+                  const sel = condominioSeleccionado === nom
                   return (
                     <button
-                      key={nombre}
+                      key={nom}
                       type="button"
-                      onClick={() => setCondominioSeleccionado(sel ? null : nombre)}
+                      onClick={() => handleSelectCondominio(nom)}
                       className="text-xs px-3 py-1.5 rounded-full transition-all duration-150 hover:scale-105 active:scale-95"
                       style={{
                         border: sel ? '1.5px solid #C0392B' : '1.5px solid rgba(255,255,255,0.1)',
@@ -243,12 +299,54 @@ export default function CheckoutPage() {
                         color: sel ? '#C0392B' : '#9CA3AF',
                       }}
                     >
-                      {nombre}
+                      {nom}
                     </button>
                   )
                 })}
               </div>
-              {condominioSeleccionado && (
+
+              {/* Advertencia Cristo Rey después de las 6pm */}
+              {cristoReyRestringido && (
+                <div className="flex items-center gap-2 text-xs rounded-lg px-3 py-2"
+                  style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', color: '#F87171' }}>
+                  <AlertCircle size={13} className="shrink-0" />
+                  No realizamos entregas a Cristo Rey después de las 6:00 pm.
+                </div>
+              )}
+
+              {/* Sub-selector de entrada para BALI y THULA */}
+              {condominioInfo?.entradaOpcional && (
+                <div className="space-y-2 pt-1">
+                  <p className="text-xs font-medium" style={{ color: '#9CA3AF' }}>
+                    ¿Por qué entrada ingresas a {condominioSeleccionado}?
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { valor: 'carretera_federal' as const, label: '🛣️ Carretera federal', extra: '+$20' },
+                      { valor: 'la_joya' as const, label: '🏘️ Entrada La Joya', extra: '+$10' },
+                    ]).map(({ valor, label, extra }) => (
+                      <button
+                        key={valor}
+                        type="button"
+                        onClick={() => setEntradaCondominio(entradaCondominio === valor ? null : valor)}
+                        className="flex flex-col gap-0.5 p-3 rounded-xl transition-all text-left"
+                        style={{
+                          border: entradaCondominio === valor ? '2px solid #C0392B' : '1px solid rgba(255,255,255,0.1)',
+                          backgroundColor: entradaCondominio === valor ? 'rgba(192,57,43,0.1)' : 'transparent',
+                        }}
+                      >
+                        <span className="text-xs font-medium" style={{ color: entradaCondominio === valor ? '#C0392B' : '#F5F5F5' }}>
+                          {label}
+                        </span>
+                        <span className="text-xs" style={{ color: '#9CA3AF' }}>{extra} al costo por distancia</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sugerencia para condominios sin coords hardcodeadas */}
+              {condominioSeleccionado && !condominioInfo?.entradaOpcional && !cristoReyRestringido && (
                 <p className="text-xs" style={{ color: 'rgba(156,163,175,0.6)' }}>
                   Selecciona tu dirección exacta en los resultados del mapa.
                 </p>
@@ -257,8 +355,10 @@ export default function CheckoutPage() {
 
             <MapaPicker
               onChange={handleDireccionChange}
-              queryExterna={condominioSeleccionado ? `${condominioSeleccionado} Playa del Carmen` : undefined}
+              queryExterna={mapQueryExterna}
+              coordenadasExternas={mapCoordsExternas}
             />
+
             {costoEnvio !== null && !calculandoEnvio && (
               <div className="flex items-center justify-between text-sm rounded-lg px-4 py-3"
                 style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.2)' }}>
@@ -380,6 +480,12 @@ export default function CheckoutPage() {
                 <span>Envío</span>
                 <span>{costoEnvio !== null ? `$${costoEnvio.toFixed(2)}` : 'Por calcular'}</span>
               </div>
+              {surcargoCondominio > 0 && (
+                <div className="flex justify-between text-sm" style={{ color: '#9CA3AF' }}>
+                  <span>🏘️ Cargo condominio{entradaCondominio === 'carretera_federal' ? ' (carretera federal)' : ''}</span>
+                  <span>+${surcargoCondominio.toFixed(2)}</span>
+                </div>
+              )}
               {surcargoClimatico > 0 && (
                 <div className="flex justify-between items-center text-sm rounded-lg px-3 py-2 -mx-3"
                   style={{ backgroundColor: 'rgba(251,176,64,0.08)', border: '1px solid rgba(251,176,64,0.2)', color: '#FBB040' }}>
@@ -409,7 +515,16 @@ export default function CheckoutPage() {
 
           <button
             type="submit"
-            disabled={enviando || !direccionData || fueraDeZona || !!zonaRestringida || costoEnvio === null || (metodoPago === 'efectivo' && !pagoEfectivo)}
+            disabled={
+              enviando ||
+              !direccionData ||
+              fueraDeZona ||
+              !!zonaRestringida ||
+              costoEnvio === null ||
+              (metodoPago === 'efectivo' && !pagoEfectivo) ||
+              cristoReyRestringido ||
+              (!!condominioInfo?.entradaOpcional && !entradaCondominio)
+            }
             className="w-full py-4 rounded-xl font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{ backgroundColor: '#C0392B', color: '#F5F5F5' }}
           >
