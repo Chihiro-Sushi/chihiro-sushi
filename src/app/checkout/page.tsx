@@ -248,6 +248,14 @@ export default function CheckoutPage() {
           Finalizar <span style={{ color: '#C0392B' }}>pedido</span>
         </h1>
 
+        {servicioSuspendido && (
+          <div className="flex items-center gap-3 rounded-xl p-4 mb-6 text-sm"
+            style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', color: '#F87171' }}>
+            <AlertCircle size={18} className="shrink-0" />
+            <span>El servicio de entrega está disponible a partir de las <strong>2:00 pm</strong>. Puedes preparar tu pedido y confirmarlo después.</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Datos personales */}
           <div className="rounded-xl p-5 space-y-4" style={{ backgroundColor: '#141414', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -556,14 +564,6 @@ export default function CheckoutPage() {
               </div>
             </div>
           </div>
-
-          {servicioSuspendido && (
-            <div className="flex items-center gap-2 rounded-xl p-4 text-sm"
-              style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', color: '#F87171' }}>
-              <AlertCircle size={16} className="shrink-0" />
-              El servicio de entrega está disponible a partir de las 2:00 pm. Puedes preparar tu pedido y confirmarlo después.
-            </div>
-          )}
 
           {error && (
             <div className="flex items-center gap-2 rounded-xl p-4 text-sm"
