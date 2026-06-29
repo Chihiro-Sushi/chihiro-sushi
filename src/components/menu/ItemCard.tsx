@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Plus, ChevronDown, Check } from 'lucide-react'
 import { useCarrito } from '@/context/CarritoContext'
 import { useToast } from '@/context/ToastContext'
+import { getPromoParaItem } from '@/lib/promociones'
 import type { MenuItem } from '@/types'
 
 interface Props {
@@ -11,8 +12,10 @@ interface Props {
 }
 
 export default function ItemCard({ item }: Props) {
-  const { agregar } = useCarrito()
+  const { agregar, promocionesActivas } = useCarrito()
   const { mostrarToast } = useToast()
+
+  const promoActiva = getPromoParaItem(item.id, item.categoriaId, promocionesActivas)
   const [varianteSeleccionada, setVarianteSeleccionada] = useState<string>('')
   const [mostrarVariantes, setMostrarVariantes] = useState(false)
   const [modoSelector, setModoSelector] = useState(false)
@@ -55,6 +58,14 @@ export default function ItemCard({ item }: Props) {
           <span className="text-xs font-medium px-2 py-0.5 rounded-full"
             style={{ backgroundColor: 'rgba(0,0,0,0.75)', color: '#9CA3AF', border: '1px solid rgba(255,255,255,0.1)' }}>
             No disponible
+          </span>
+        </div>
+      )}
+      {promoActiva && !noDisponible && (
+        <div className="absolute top-2.5 left-2.5 z-10">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: 'rgba(192,57,43,0.88)', color: '#F5F5F5', boxShadow: '0 2px 6px rgba(192,57,43,0.4)' }}>
+            🎉 {promoActiva.nombre}
           </span>
         </div>
       )}

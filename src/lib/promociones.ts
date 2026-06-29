@@ -20,6 +20,22 @@ function itemCalifica(item: ItemCarrito, promo: Promocion): boolean {
   return false
 }
 
+export function getPromoParaItem(
+  itemId: string,
+  categoriaId: string | undefined,
+  promociones: Promocion[]
+): Promocion | null {
+  const activas = promociones.filter((p) => p.activa && esVigente(p))
+  for (const promo of activas) {
+    const tieneItems = promo.itemIds && promo.itemIds.length > 0
+    const tieneCats = promo.categoriaIds && promo.categoriaIds.length > 0
+    if (!tieneItems && !tieneCats) return promo
+    if (tieneItems && promo.itemIds!.includes(itemId)) return promo
+    if (tieneCats && categoriaId && promo.categoriaIds!.includes(categoriaId)) return promo
+  }
+  return null
+}
+
 export function clavesConPromocion3x2(items: ItemCarrito[], promociones: Promocion[]): Set<string> {
   const activas = promociones.filter((p) => p.activa && p.tipo === '3x2' && esVigente(p))
   const claves = new Set<string>()
