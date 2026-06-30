@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { MapPin, Loader2 } from 'lucide-react'
-import { RESTAURANTE_COORDS, calcularDistanciaKm } from '@/lib/envio'
+import { RESTAURANTE_COORDS, calcularDistanciaRuta } from '@/lib/envio'
 
 interface Props {
   onChange: (datos: {
@@ -94,14 +94,14 @@ export default function MapaPicker({ onChange, queryExterna, coordenadasExternas
     const marker = L.marker([lat, lng], { icon, draggable: true }).addTo(map)
     markerRef.current = marker
 
-    const distanciaKm = calcularDistanciaKm(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, lat, lng)
+    const distanciaKm = await calcularDistanciaRuta(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, lat, lng)
     onChange({ direccion, coordenadas: { lat, lng }, distanciaKm })
 
     marker.on('dragend', async () => {
       const pos = marker.getLatLng()
       const newLat = pos.lat
       const newLng = pos.lng
-      const newDistancia = calcularDistanciaKm(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, newLat, newLng)
+      const newDistancia = await calcularDistanciaRuta(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, newLat, newLng)
 
       let nuevaDireccion = direccion
       try {
