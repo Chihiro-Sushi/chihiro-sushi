@@ -1,4 +1,4 @@
-export type SonidoId = 'ding-dong' | 'campana' | 'ascendente' | 'triple' | 'alerta' | 'silencio'
+export type SonidoId = 'ding-dong' | 'campana' | 'ascendente' | 'triple' | 'alerta' | 'bocina' | 'sirena' | 'silencio'
 
 export interface Sonido {
   id: SonidoId
@@ -75,6 +75,37 @@ export const SONIDOS: Sonido[] = [
     tocar: (ctx) => {
       nota(ctx, 880, 0, 0.1, 0.4)
       nota(ctx, 880, 0.15, 0.1, 0.4)
+    },
+  },
+  {
+    id: 'bocina',
+    nombre: 'Bocina',
+    emoji: '📣',
+    tocar: (ctx) => {
+      nota(ctx, 440, 0, 0.5, 0.7, 'square')
+      nota(ctx, 880, 0, 0.5, 0.35, 'square')
+    },
+  },
+  {
+    id: 'sirena',
+    nombre: 'Sirena',
+    emoji: '🚨',
+    tocar: (ctx) => {
+      const now = ctx.currentTime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'square'
+      // Alterna rápido entre dos frecuencias
+      for (let i = 0; i < 6; i++) {
+        osc.frequency.setValueAtTime(i % 2 === 0 ? 960 : 640, now + i * 0.1)
+      }
+      gain.gain.setValueAtTime(0.7, now)
+      gain.gain.setValueAtTime(0.7, now + 0.55)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7)
+      osc.start(now)
+      osc.stop(now + 0.7)
     },
   },
   {
