@@ -120,6 +120,18 @@ export default function PedidoCard({ pedido }: Props) {
               <MapPin size={12} style={{ color: '#C0392B', flexShrink: 0, marginTop: 1 }} />
               <span className="leading-relaxed">{pedido.cliente.direccion}</span>
             </div>
+            {pedido.cliente.coordenadas && (
+              <a
+                href={`https://www.google.com/maps?q=${pedido.cliente.coordenadas.lat},${pedido.cliente.coordenadas.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs flex items-center gap-1 mt-1 hover:underline"
+                style={{ color: '#60A5FA' }}
+              >
+                <MapPin size={11} />
+                Ver en Google Maps
+              </a>
+            )}
           </div>
           <div className="text-right shrink-0">
             <p className="font-bold text-lg" style={{ color: '#C0392B' }}>
