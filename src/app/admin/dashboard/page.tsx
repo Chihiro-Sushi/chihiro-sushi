@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { usePedidosRealtime } from '@/hooks/usePedidosRealtime'
 import PedidoCard from '@/components/admin/PedidoCard'
+import SelectorSonido from '@/components/admin/SelectorSonido'
 import { Loader2, Package, CloudRain, Ban } from 'lucide-react'
 import type { EstadoPedido } from '@/types'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
@@ -64,6 +65,8 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6">
+
+      <SelectorSonido />
 
       {/* Control operativo */}
       <div className="mb-6 rounded-xl p-4 space-y-3" style={{ backgroundColor: '#141414', border: '1px solid rgba(255,255,255,0.06)' }}>
