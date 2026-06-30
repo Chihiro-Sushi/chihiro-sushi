@@ -35,6 +35,7 @@ export default function MapaPicker({ onChange, queryExterna, coordenadasExternas
   const [sugerencias, setSugerencias] = useState<Sugerencia[]>([])
   const [buscando, setBuscando] = useState(false)
   const [cargandoMapa, setCargandoMapa] = useState(true)
+  const [errorRuta, setErrorRuta] = useState(false)
 
   useEffect(() => {
     if (mapInstanceRef.current || !mapRef.current) return
@@ -94,14 +95,19 @@ export default function MapaPicker({ onChange, queryExterna, coordenadasExternas
     const marker = L.marker([lat, lng], { icon, draggable: true }).addTo(map)
     markerRef.current = marker
 
-    const distanciaKm = await calcularDistanciaRuta(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, lat, lng)
-    onChange({ direccion, coordenadas: { lat, lng }, distanciaKm })
+    try {
+      setErrorRuta(false)
+      const distanciaKm = await calcularDistanciaRuta(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, lat, lng)
+      onChange({ direccion, coordenadas: { lat, lng }, distanciaKm })
+    } catch {
+      setErrorRuta(true)
+      return
+    }
 
     marker.on('dragend', async () => {
       const pos = marker.getLatLng()
       const newLat = pos.lat
       const newLng = pos.lng
-      const newDistancia = await calcularDistanciaRuta(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, newLat, newLng)
 
       let nuevaDireccion = direccion
       try {
@@ -118,7 +124,13 @@ export default function MapaPicker({ onChange, queryExterna, coordenadasExternas
         // mantiene la dirección anterior si falla
       }
 
-      onChange({ direccion: nuevaDireccion, coordenadas: { lat: newLat, lng: newLng }, distanciaKm: newDistancia })
+      try {
+        setErrorRuta(false)
+        const newDistancia = await calcularDistanciaRuta(RESTAURANTE_COORDS.lat, RESTAURANTE_COORDS.lng, newLat, newLng)
+        onChange({ direccion: nuevaDireccion, coordenadas: { lat: newLat, lng: newLng }, distanciaKm: newDistancia })
+      } catch {
+        setErrorRuta(true)
+      }
     })
   }, [onChange])
 
@@ -225,6 +237,13 @@ export default function MapaPicker({ onChange, queryExterna, coordenadasExternas
       {busqueda && !buscando && sugerencias.length === 0 && (
         <p className="text-xs" style={{ color: 'rgba(156,163,175,0.6)' }}>
           Puedes arrastrar el pin rojo para ajustar el punto de entrega exacto.
+        </p>
+      )}
+
+      {errorRuta && (
+        <p className="text-xs rounded-xl px-3 py-2.5 text-center"
+          style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.25)', color: '#F87171' }}>
+          No se pudo calcular la distancia. Por favor selecciona tu dirección de nuevo.
         </p>
       )}
 

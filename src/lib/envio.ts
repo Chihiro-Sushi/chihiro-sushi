@@ -45,23 +45,19 @@ export function calcularDistanciaKm(
 }
 
 // Calcula distancia real por carretera usando OSRM (OpenStreetMap routing).
-// Si falla, regresa la distancia en línea recta como respaldo.
+// Lanza un error si no se puede obtener la distancia.
 export async function calcularDistanciaRuta(
   lat1: number,
   lng1: number,
   lat2: number,
   lng2: number
 ): Promise<number> {
-  try {
-    // OSRM espera coordenadas en orden lng,lat
-    const url = `https://router.project-osrm.org/route/v1/driving/${lng1},${lat1};${lng2},${lat2}?overview=false`
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
-    const data = await res.json()
-    if (data.code === 'Ok' && data.routes?.[0]) {
-      return data.routes[0].distance / 1000
-    }
-  } catch {
-    // falla silenciosa — usa Haversine como respaldo
+  // OSRM espera coordenadas en orden lng,lat
+  const url = `https://router.project-osrm.org/route/v1/driving/${lng1},${lat1};${lng2},${lat2}?overview=false`
+  const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
+  const data = await res.json()
+  if (data.code === 'Ok' && data.routes?.[0]) {
+    return data.routes[0].distance / 1000
   }
-  return calcularDistanciaKm(lat1, lng1, lat2, lng2)
+  throw new Error('No se pudo calcular la distancia por carretera')
 }
