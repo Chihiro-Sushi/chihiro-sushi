@@ -52,7 +52,11 @@ export interface Pedido {
   total: number
   metodoPago: 'efectivo' | 'tarjeta'
   pagoEfectivo?: 'exacto' | 'cambio'
+  distanciaKm?: number
   surcargoClimatico?: number
+  surcargoCondominio?: number
+  condominio?: string
+  entradaCondominio?: 'carretera_federal' | 'la_joya'
   estado: 'esperando_pago' | 'pendiente' | 'en_proceso' | 'en_camino' | 'entregado' | 'cancelado'
   stripePaymentId?: string
   notas?: string

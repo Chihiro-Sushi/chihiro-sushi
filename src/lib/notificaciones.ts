@@ -42,6 +42,13 @@ export async function enviarNotificacionPedido(pedido: Pedido): Promise<void> {
           <p style="margin:4px 0;"><strong>Nombre:</strong> ${pedido.cliente.nombre}</p>
           <p style="margin:4px 0;"><strong>Teléfono:</strong> ${pedido.cliente.telefono}</p>
           <p style="margin:4px 0;"><strong>Dirección:</strong> ${pedido.cliente.direccion}</p>
+          ${pedido.distanciaKm != null ? `<p style="margin:4px 0;"><strong>Distancia:</strong> ${pedido.distanciaKm.toFixed(1)} km</p>` : ''}
+          ${pedido.condominio ? `
+          <div style="margin:10px 0;padding:10px 14px;background:#2a1a1a;border-left:3px solid #c0392b;border-radius:4px;">
+            <p style="margin:2px 0;"><strong>Condominio:</strong> ${pedido.condominio}</p>
+            ${pedido.entradaCondominio ? `<p style="margin:2px 0;"><strong>Entrada:</strong> ${pedido.entradaCondominio === 'carretera_federal' ? 'Carretera Federal' : 'La Joya'}</p>` : ''}
+            ${pedido.surcargoCondominio && pedido.surcargoCondominio > 0 ? `<p style="margin:2px 0;color:#f87171;"><strong>Cargo extra condominio:</strong> +$${pedido.surcargoCondominio.toFixed(2)}</p>` : ''}
+          </div>` : ''}
           <p style="margin:8px 0;">
             <a href="https://www.google.com/maps?q=${pedido.cliente.coordenadas.lat},${pedido.cliente.coordenadas.lng}"
               style="display:inline-block;background:#c0392b;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:bold;">

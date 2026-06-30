@@ -175,6 +175,7 @@ export default function CheckoutPage() {
           coordenadas: direccionData.coordenadas,
         },
         items,
+        distanciaKm: Math.round(direccionData.distanciaKm * 10) / 10,
         subtotal: total,
         costoEnvio: costoEnvio ?? 0,
         surcargoClimatico,

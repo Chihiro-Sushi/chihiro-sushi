@@ -171,6 +171,35 @@ export default function PedidoCard({ pedido }: Props) {
 
           {/* Totales */}
           <div className="text-xs space-y-1" style={{ color: '#9CA3AF' }}>
+            {pedido.distanciaKm != null && (
+              <div className="flex justify-between">
+                <span>📍 Distancia</span>
+                <span>{pedido.distanciaKm.toFixed(1)} km</span>
+              </div>
+            )}
+            {pedido.condominio && (
+              <div
+                className="rounded-lg px-2.5 py-2 space-y-1 my-1"
+                style={{ backgroundColor: 'rgba(192,57,43,0.07)', border: '1px solid rgba(192,57,43,0.2)' }}
+              >
+                <div className="flex justify-between font-medium" style={{ color: '#F5F5F5' }}>
+                  <span>🏘️ Condominio</span>
+                  <span>{pedido.condominio}</span>
+                </div>
+                {pedido.entradaCondominio && (
+                  <div className="flex justify-between">
+                    <span>Entrada</span>
+                    <span>{pedido.entradaCondominio === 'carretera_federal' ? 'Carretera Federal' : 'La Joya'}</span>
+                  </div>
+                )}
+                {pedido.surcargoCondominio != null && pedido.surcargoCondominio > 0 && (
+                  <div className="flex justify-between" style={{ color: '#C0392B' }}>
+                    <span>Cargo extra</span>
+                    <span>+${pedido.surcargoCondominio.toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>${pedido.subtotal.toFixed(2)}</span>
