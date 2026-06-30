@@ -33,7 +33,7 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
   const descuentosPorItem = calcularDescuentoPorItem(items, promocionesActivas)
 
   const hora = new Date().getHours()
-  const servicioSuspendido = hora < 14
+  const servicioSuspendido = false && hora < 14
 
   function irACheckout() {
     onCerrar()

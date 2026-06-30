@@ -137,7 +137,7 @@ export default function CheckoutPage() {
   }, [])
 
   const hora = new Date().getHours()
-  const servicioSuspendido = hora < 14
+  const servicioSuspendido = false && hora < 14
 
   const totalSinComision = totalConDescuento + (costoEnvio ?? 0) + surcargoClimatico + surcargoCondominio
   const comisionStripe = metodoPago === 'tarjeta'
