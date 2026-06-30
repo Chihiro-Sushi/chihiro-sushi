@@ -55,19 +55,32 @@ export default function PedidoCard({ pedido }: Props) {
   const esPendiente = pedido.estado === 'pendiente'
 
   return (
+    <>
+      {esPendiente && (
+        <style>{`
+          @keyframes parpadeo-pedido {
+            0%, 100% { box-shadow: 0 0 0 1px rgba(251,176,64,0.15), 0 0 16px rgba(251,176,64,0.08); }
+            50% { box-shadow: 0 0 0 2px rgba(251,176,64,0.5), 0 0 32px rgba(251,176,64,0.28); }
+          }
+          @keyframes punto-pendiente {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+          }
+        `}</style>
+      )}
     <div
-      className="rounded-xl overflow-hidden transition-all"
+      className="rounded-xl overflow-hidden"
       style={{
         backgroundColor: '#141414',
-        border: `1px solid ${esPendiente ? 'rgba(251,176,64,0.4)' : 'rgba(255,255,255,0.08)'}`,
-        boxShadow: esPendiente ? '0 0 0 1px rgba(251,176,64,0.1), 0 4px 24px rgba(251,176,64,0.08)' : 'none',
+        border: `1px solid ${esPendiente ? 'rgba(251,176,64,0.45)' : 'rgba(255,255,255,0.08)'}`,
+        animation: esPendiente ? 'parpadeo-pedido 1.6s ease-in-out infinite' : 'none',
       }}
     >
       {/* Número de pedido — banda superior */}
       <div
         className="flex items-center justify-between px-4 py-2.5"
         style={{
-          backgroundColor: esPendiente ? 'rgba(251,176,64,0.08)' : 'rgba(255,255,255,0.03)',
+          backgroundColor: esPendiente ? 'rgba(251,176,64,0.1)' : 'rgba(255,255,255,0.03)',
           borderBottom: '1px solid rgba(255,255,255,0.05)',
         }}
       >
@@ -81,6 +94,12 @@ export default function PedidoCard({ pedido }: Props) {
           >
             {estadoActual.label}
           </span>
+          {esPendiente && (
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: '#FBB040', animation: 'punto-pendiente 1.6s ease-in-out infinite', display: 'inline-block' }}
+            />
+          )}
         </div>
         <div className="flex items-center gap-1.5 text-xs" style={{ color: '#9CA3AF' }}>
           <Clock size={11} />
@@ -272,5 +291,6 @@ export default function PedidoCard({ pedido }: Props) {
         </div>
       )}
     </div>
+    </>
   )
 }
