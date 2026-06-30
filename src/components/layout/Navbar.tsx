@@ -2,6 +2,7 @@
 
 import { ShoppingCart } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCarrito } from '@/context/CarritoContext'
 import CarritoDrawer from '@/components/menu/CarritoDrawer'
 
@@ -9,6 +10,17 @@ export default function Navbar() {
   const { cantidad } = useCarrito()
   const [carritoAbierto, setCarritoAbierto] = useState(false)
   const [progreso, setProgreso] = useState(0)
+  const pathname = usePathname()
+  const router = useRouter()
+
+  function handleLogoClick(e: React.MouseEvent) {
+    e.preventDefault()
+    if (pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      router.push('/')
+    }
+  }
 
   useEffect(() => {
     function onScroll() {
@@ -31,6 +43,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <a
               href="/"
+              onClick={handleLogoClick}
               className="text-2xl font-bold text-rojo tracking-tight transition-all duration-200 hover:scale-105 hover:opacity-90 inline-block"
             >
               CHIHIRO <span className="text-blanco">SUSHI</span>
