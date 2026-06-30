@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/reset-pedidos",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}
