@@ -44,7 +44,7 @@ export function calcularDistanciaKm(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-// Calcula distancia real por carretera usando OSRM (OpenStreetMap routing).
+// Calcula distancia real por carretera usando OpenRouteService.
 // Lanza un error si no se puede obtener la distancia.
 export async function calcularDistanciaRuta(
   lat1: number,
@@ -52,12 +52,14 @@ export async function calcularDistanciaRuta(
   lat2: number,
   lng2: number
 ): Promise<number> {
-  // OSRM espera coordenadas en orden lng,lat
-  const url = `https://router.project-osrm.org/route/v1/driving/${lng1},${lat1};${lng2},${lat2}?overview=false`
+  const key = process.env.NEXT_PUBLIC_ORS_API_KEY
+  if (!key) throw new Error('ORS API key no configurada')
+  // ORS espera coordenadas en orden lng,lat
+  const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${key}&start=${lng1},${lat1}&end=${lng2},${lat2}`
   const res = await fetch(url, { signal: AbortSignal.timeout(8000) })
   const data = await res.json()
-  if (data.code === 'Ok' && data.routes?.[0]) {
-    return data.routes[0].distance / 1000
+  if (data.features?.[0]?.properties?.summary?.distance != null) {
+    return data.features[0].properties.summary.distance / 1000
   }
   throw new Error('No se pudo calcular la distancia por carretera')
 }
