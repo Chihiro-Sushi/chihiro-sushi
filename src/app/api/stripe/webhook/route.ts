@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { adminDb } from '@/lib/firebase-admin'
-import { enviarNotificacionPedido } from '@/lib/notificaciones'
 import { FieldValue } from 'firebase-admin/firestore'
-import type { Pedido } from '@/types'
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
@@ -27,18 +25,6 @@ export async function POST(req: NextRequest) {
         stripePaymentId: session.payment_intent ?? '',
         actualizadoEn: FieldValue.serverTimestamp(),
       })
-
-      // Enviar notificación al encargado
-      const snap = await adminDb.collection('pedidos').doc(pedidoId).get()
-      if (snap.exists) {
-        const pedido = { id: pedidoId, ...snap.data() } as Pedido
-        try {
-          await enviarNotificacionPedido(pedido)
-          console.log('[Notificación] Email enviado correctamente (tarjeta)')
-        } catch (err) {
-          console.error('[Notificación] Error al enviar email (tarjeta):', err)
-        }
-      }
     }
   }
 

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
-import { enviarNotificacionPedido } from '@/lib/notificaciones'
 import { FieldValue } from 'firebase-admin/firestore'
-import type { Pedido } from '@/types'
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,16 +39,6 @@ export async function POST(req: NextRequest) {
     }
 
     const ref = await adminDb.collection('pedidos').add(pedidoData)
-    const snap = await ref.get()
-    const pedido = { id: ref.id, ...snap.data() } as Pedido
-
-    // Enviar notificación al encargado
-    try {
-      await enviarNotificacionPedido(pedido)
-      console.log('[Notificación] Email enviado correctamente')
-    } catch (err) {
-      console.error('[Notificación] Error al enviar email:', err)
-    }
 
     return NextResponse.json({ id: ref.id }, { status: 201 })
   } catch (error) {
