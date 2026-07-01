@@ -31,7 +31,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ distanciaKm })
     }
 
-    return NextResponse.json({ error: 'Sin ruta disponible' }, { status: 422 })
+    return NextResponse.json({
+      error: 'Sin ruta disponible',
+      debug_status: data.status,
+      debug_element_status: data.rows?.[0]?.elements?.[0]?.status,
+      debug_error_message: data.error_message,
+    }, { status: 422 })
   } catch {
     return NextResponse.json({ error: 'Error al consultar Google Maps' }, { status: 500 })
   }
