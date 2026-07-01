@@ -44,19 +44,20 @@ export function calcularDistanciaKm(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-// Calcula distancia real por carretera usando Google Maps Distance Matrix API.
+// Calcula distancia real por carretera usando OpenRouteService.
 // Lanza un error si no se puede obtener la distancia.
 export async function calcularDistanciaRuta(
-  _lat1: number,
-  _lng1: number,
+  lat1: number,
+  lng1: number,
   lat2: number,
   lng2: number
 ): Promise<number> {
-  const res = await fetch(`/api/distancia?lat=${lat2}&lng=${lng2}`, {
-    signal: AbortSignal.timeout(10000),
-  })
+  const apiKey = process.env.NEXT_PUBLIC_ORS_API_KEY
+  const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${lng1},${lat1}&end=${lng2},${lat2}`
+  const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
   if (!res.ok) throw new Error('No se pudo calcular la distancia por carretera')
   const data = await res.json()
-  if (data.distanciaKm != null) return data.distanciaKm
+  const distanciaM = data.features?.[0]?.properties?.segments?.[0]?.distance
+  if (distanciaM != null) return distanciaM / 1000
   throw new Error('No se pudo calcular la distancia por carretera')
 }
