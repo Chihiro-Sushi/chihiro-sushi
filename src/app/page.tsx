@@ -163,7 +163,7 @@ export default function HomePage() {
               Por el momento esta plataforma solo funciona para visualizar el menú.
             </h2>
             <p className="text-sm leading-relaxed" style={{ color: 'rgba(245,245,245,0.85)' }}>
-              Puedes navegar en ella. Próximamente disponible podrás ordenar desde aquí.
+              Puedes navegar en ella. Próximamente disponible para ordenar desde aquí.
             </p>
           </div>
         </div>
