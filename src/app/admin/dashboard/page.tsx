@@ -116,10 +116,10 @@ export default function DashboardPage() {
             <Ban size={18} style={{ color: suspension ? '#C0392B' : '#9CA3AF', flexShrink: 0 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <p className="text-sm font-medium" style={{ color: suspension ? '#C0392B' : '#F5F5F5' }}>
-                Suspensión de delivery por condiciones extremas
+                Suspensión delivery
               </p>
               <p className="text-xs" style={{ color: '#9CA3AF' }}>
-                {suspension ? 'Activa — pedidos bloqueados' : 'Inactiva'}
+                {suspension ? 'Activa — solo visualización del menú' : 'Inactiva'}
               </p>
             </div>
             <div className="relative shrink-0 rounded-full transition-colors duration-200"

@@ -152,21 +152,19 @@ export default function HomePage() {
       </section>
 
       {config.suspensionDelivery && (
-        <div className="w-full py-10 px-4 text-center"
+        <div className="w-full py-8 px-4 text-center"
           style={{
-            background: 'linear-gradient(135deg, #7B0000 0%, #C0392B 50%, #7B0000 100%)',
-            borderBottom: '2px solid rgba(255,255,255,0.08)',
+            backgroundColor: '#141414',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
           }}>
           <div className="max-w-lg mx-auto">
-            <div style={{ fontSize: '3.5rem', lineHeight: 1, marginBottom: '0.75rem' }}>🌧️</div>
-            <h2 className="text-2xl font-black mb-2" style={{ color: '#F5F5F5', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-              Delivery suspendido temporalmente
-            </h2>
-            <p className="text-sm leading-relaxed" style={{ color: 'rgba(245,245,245,0.85)' }}>
-              Por condiciones climáticas u otros motivos, no podemos procesar pedidos en este momento.
+            <div style={{ fontSize: '2.5rem', lineHeight: 1, marginBottom: '0.75rem' }}>🍣</div>
+            <p className="text-base font-semibold mb-1" style={{ color: '#F5F5F5' }}>
+              Por el momento esta plataforma solo funciona para visualizar el menú.
             </p>
-            <p className="mt-2 text-sm font-semibold" style={{ color: 'rgba(245,245,245,0.75)' }}>
-              ¡Gracias por tu comprensión — vuelve pronto! 🙏
+            <p className="text-sm" style={{ color: '#9CA3AF' }}>
+              Puedes navegar en ella. Próximamente disponible podrás ordenar desde aquí.
             </p>
           </div>
         </div>
