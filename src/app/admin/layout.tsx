@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
+import { useAutoReloadOnDeploy } from '@/hooks/useAutoReloadOnDeploy'
 import Link from 'next/link'
 import { LayoutDashboard, UtensilsCrossed, Tag, Settings, LogOut, Loader2 } from 'lucide-react'
 
@@ -34,27 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // versión vieja del código, un deploy nuevo (ej. fixes de procesamiento de
   // pedidos) no tiene efecto hasta recargar. Recargamos solo al detectar un
   // deploy nuevo, para que siempre corra la versión actual.
-  useEffect(() => {
-    let versionInicial: string | null = null
-
-    async function verificarVersion() {
-      try {
-        const res = await fetch('/api/version', { cache: 'no-store' })
-        const { version } = await res.json()
-        if (versionInicial === null) {
-          versionInicial = version
-        } else if (version !== versionInicial) {
-          window.location.reload()
-        }
-      } catch {
-        // sin conexión momentánea, se reintenta en el próximo ciclo
-      }
-    }
-
-    verificarVersion()
-    const intervalo = setInterval(verificarVersion, 60000)
-    return () => clearInterval(intervalo)
-  }, [])
+  useAutoReloadOnDeploy()
 
   if (pathname === '/admin/login') return <>{children}</>
 
