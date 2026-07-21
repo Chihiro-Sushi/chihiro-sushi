@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
         tx.update(pedidoRef, {
           numeroPedido: siguiente,
-          estado: 'en_proceso',
+          estado: 'pendiente',
           stripePaymentId: session.payment_intent ?? '',
           actualizadoEn: FieldValue.serverTimestamp(),
         })
