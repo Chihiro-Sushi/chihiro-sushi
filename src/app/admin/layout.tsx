@@ -30,6 +30,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return unsub
   }, [pathname, router])
 
+  // El panel suele quedarse abierto horas en la cocina; si queda corriendo una
+  // versión vieja del código, un deploy nuevo (ej. fixes de procesamiento de
+  // pedidos) no tiene efecto hasta recargar. Recargamos solo al detectar un
+  // deploy nuevo, para que siempre corra la versión actual.
+  useEffect(() => {
+    let versionInicial: string | null = null
+
+    async function verificarVersion() {
+      try {
+        const res = await fetch('/api/version', { cache: 'no-store' })
+        const { version } = await res.json()
+        if (versionInicial === null) {
+          versionInicial = version
+        } else if (version !== versionInicial) {
+          window.location.reload()
+        }
+      } catch {
+        // sin conexión momentánea, se reintenta en el próximo ciclo
+      }
+    }
+
+    verificarVersion()
+    const intervalo = setInterval(verificarVersion, 60000)
+    return () => clearInterval(intervalo)
+  }, [])
+
   if (pathname === '/admin/login') return <>{children}</>
 
   if (autenticado === null) {
