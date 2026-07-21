@@ -251,6 +251,12 @@ export default function PedidoCard({ pedido }: Props) {
                 <span>+${pedido.surcargoClimatico.toFixed(2)}</span>
               </div>
             ) : null}
+            {pedido.metodoPago === 'tarjeta' && pedido.comisionTarjeta ? (
+              <div className="flex justify-between">
+                <span>💳 Comisión Stripe</span>
+                <span>+${pedido.comisionTarjeta.toFixed(2)}</span>
+              </div>
+            ) : null}
             <div
               className="flex justify-between pt-1.5 font-semibold text-sm"
               style={{ borderTop: '1px solid rgba(255,255,255,0.06)', color: '#F5F5F5' }}

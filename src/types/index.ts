@@ -51,6 +51,7 @@ export interface Pedido {
   descuento: number
   total: number
   metodoPago: 'efectivo' | 'tarjeta'
+  comisionTarjeta?: number
   pagoEfectivo?: 'exacto' | 'cambio'
   distanciaKm?: number
   surcargoClimatico?: number
