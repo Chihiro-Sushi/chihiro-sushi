@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { MapPin, Loader2 } from 'lucide-react'
+import { MapPin, Loader2, LocateFixed } from 'lucide-react'
 import { RESTAURANTE_COORDS, calcularDistanciaRuta } from '@/lib/envio'
 
 interface Props {
@@ -36,6 +36,8 @@ export default function MapaPicker({ onChange, queryExterna, coordenadasExternas
   const [buscando, setBuscando] = useState(false)
   const [cargandoMapa, setCargandoMapa] = useState(true)
   const [errorRuta, setErrorRuta] = useState(false)
+  const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false)
+  const [errorUbicacion, setErrorUbicacion] = useState('')
 
   useEffect(() => {
     if (mapInstanceRef.current || !mapRef.current) return
@@ -188,6 +190,47 @@ export default function MapaPicker({ onChange, queryExterna, coordenadasExternas
     await colocarMarcador(parseFloat(s.lat), parseFloat(s.lon), s.display_name)
   }
 
+  function usarMiUbicacion() {
+    setErrorUbicacion('')
+
+    if (!navigator.geolocation) {
+      setErrorUbicacion('Tu navegador no soporta compartir ubicación.')
+      return
+    }
+
+    setObteniendoUbicacion(true)
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords
+        let direccion = 'Mi ubicación actual'
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+            { headers: { 'Accept-Language': 'es', 'User-Agent': 'ChihiroSushiApp/1.0' } }
+          )
+          const data = await res.json()
+          if (data.display_name) direccion = data.display_name
+        } catch {
+          // mantiene el nombre genérico si falla el reverse-geocode
+        }
+
+        setBusqueda(direccion)
+        setSugerencias([])
+        await colocarMarcador(lat, lng, direccion)
+        setObteniendoUbicacion(false)
+      },
+      (err) => {
+        setObteniendoUbicacion(false)
+        if (err.code === err.PERMISSION_DENIED) {
+          setErrorUbicacion('No diste permiso para acceder a tu ubicación. Puedes buscar tu dirección manualmente.')
+        } else {
+          setErrorUbicacion('No se pudo obtener tu ubicación. Intenta de nuevo o busca tu dirección manualmente.')
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
+
   return (
     <div className="space-y-3">
       <div className="relative">
@@ -233,6 +276,26 @@ export default function MapaPicker({ onChange, queryExterna, coordenadasExternas
           </ul>
         )}
       </div>
+
+      <button
+        type="button"
+        onClick={usarMiUbicacion}
+        disabled={obteniendoUbicacion}
+        className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
+        style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', color: '#C0392B' }}
+      >
+        {obteniendoUbicacion
+          ? <><Loader2 size={15} className="animate-spin" /> Obteniendo tu ubicación...</>
+          : <><LocateFixed size={15} /> Usar mi ubicación actual</>
+        }
+      </button>
+
+      {errorUbicacion && (
+        <p className="text-xs rounded-xl px-3 py-2.5 text-center"
+          style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.25)', color: '#F87171' }}>
+          {errorUbicacion}
+        </p>
+      )}
 
       {busqueda && !buscando && sugerencias.length === 0 && (
         <p className="text-xs" style={{ color: 'rgba(156,163,175,0.6)' }}>
