@@ -20,10 +20,24 @@ export async function POST(req: NextRequest) {
     const pedidoId = session.metadata?.pedidoId
 
     if (pedidoId) {
-      await adminDb.collection('pedidos').doc(pedidoId).update({
-        estado: 'en_proceso',
-        stripePaymentId: session.payment_intent ?? '',
-        actualizadoEn: FieldValue.serverTimestamp(),
+      const pedidoRef = adminDb.collection('pedidos').doc(pedidoId)
+      const counterRef = adminDb.collection('counters').doc('pedidos')
+
+      await adminDb.runTransaction(async (tx) => {
+        const pedidoSnap = await tx.get(pedidoRef)
+        // Idempotente: si ya se procesó este pago (reintento de webhook), no volver a asignar número
+        if (!pedidoSnap.exists || pedidoSnap.data()?.estado !== 'esperando_pago') return
+
+        const counterSnap = await tx.get(counterRef)
+        const siguiente: number = counterSnap.exists ? (counterSnap.data()?.siguiente ?? 1) : 1
+        tx.set(counterRef, { siguiente: siguiente + 1 }, { merge: true })
+
+        tx.update(pedidoRef, {
+          numeroPedido: siguiente,
+          estado: 'en_proceso',
+          stripePaymentId: session.payment_intent ?? '',
+          actualizadoEn: FieldValue.serverTimestamp(),
+        })
       })
     }
   }

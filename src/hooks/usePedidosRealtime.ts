@@ -33,6 +33,7 @@ export function usePedidosRealtime(filtroEstado?: EstadoPedido) {
   const [todos, setTodos] = useState<Pedido[]>([])
   const [cargando, setCargando] = useState(true)
   const primeraVez = useRef(true)
+  const idsVistos = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     const handler = () => desbloquearAudio()
@@ -42,22 +43,25 @@ export function usePedidosRealtime(filtroEstado?: EstadoPedido) {
 
   useEffect(() => {
     primeraVez.current = true
+    idsVistos.current = new Set()
 
     const q = query(collection(db, 'pedidos'), orderBy('creadoEn', 'desc'))
 
     const unsub = onSnapshot(
       q,
       (snapshot) => {
-        const pedidos = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Pedido[]
+        // Los pedidos con tarjeta esperando confirmación de pago no deben
+        // aparecer en el panel hasta que el webhook de Stripe confirme el pago.
+        const pedidos = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((p) => (p as Pedido).estado !== 'esperando_pago') as Pedido[]
 
         if (!primeraVez.current) {
-          const nuevos = snapshot.docChanges().filter((c) => c.type === 'added')
-          if (nuevos.length > 0) reproducirSonidoNotificacion()
+          const hayNuevo = pedidos.some((p) => !idsVistos.current.has(p.id))
+          if (hayNuevo) reproducirSonidoNotificacion()
         }
 
+        idsVistos.current = new Set(pedidos.map((p) => p.id))
         primeraVez.current = false
         setTodos(pedidos)
         setCargando(false)
