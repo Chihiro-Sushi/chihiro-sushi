@@ -7,6 +7,7 @@ import Navbar from '@/components/layout/Navbar'
 import MapaPicker from '@/components/checkout/MapaPicker'
 import { ShoppingBag, CreditCard, Banknote, Loader2, AlertCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { horaActualNegocio } from '@/lib/horario'
 
 interface CondominioInfo {
   nombre: string
@@ -78,7 +79,7 @@ export default function CheckoutPage() {
   })()
 
   const cristoReyRestringido =
-    condominioSeleccionado === 'Cristo Rey' && new Date().getHours() >= 18
+    condominioSeleccionado === 'Cristo Rey' && horaActualNegocio() >= 18
 
   const mapQueryExterna =
     condominioSeleccionado && !condominioInfo?.coords && !condominioInfo?.bloqueado
@@ -101,7 +102,7 @@ export default function CheckoutPage() {
       return 'Lo sentimos, no realizamos entregas en esta zona.'
     }
     if (dir.includes('cristo rey')) {
-      if (new Date().getHours() >= 18) {
+      if (horaActualNegocio() >= 18) {
         return 'Lo sentimos, no realizamos entregas a Cristo Rey después de las 6:00 pm.'
       }
     }
@@ -136,7 +137,7 @@ export default function CheckoutPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const hora = new Date().getHours()
+  const hora = horaActualNegocio()
   const servicioSuspendido = hora < 14
 
   const totalSinComision = totalConDescuento + (costoEnvio ?? 0) + surcargoClimatico + surcargoCondominio
@@ -207,8 +208,10 @@ export default function CheckoutPage() {
         body: JSON.stringify(pedidoData),
       })
 
-      if (res.status === 503) throw new Error('El delivery está suspendido temporalmente por condiciones climáticas. ¡Vuelve pronto!')
-      if (!res.ok) throw new Error('Error al procesar el pedido')
+      if (!res.ok) {
+        const json = await res.json().catch(() => null)
+        throw new Error(json?.error ?? 'Error al procesar el pedido')
+      }
 
       limpiar()
       router.push('/pedido-confirmado')

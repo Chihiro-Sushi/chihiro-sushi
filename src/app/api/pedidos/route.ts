@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
+import { horaActualNegocio } from '@/lib/horario'
 
 export async function POST(req: NextRequest) {
   try {
-    const hora = new Date().getHours()
+    const hora = horaActualNegocio()
     if (hora < 14) {
       return NextResponse.json(
         { error: 'El servicio no está disponible entre las 12:00 am y las 2:00 pm.' },
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
     const configSnap = await adminDb.collection('configuracion').doc('sitio').get()
     if (configSnap.exists && configSnap.data()?.suspensionDelivery) {
       return NextResponse.json(
-        { error: 'Delivery suspendido temporalmente por condiciones climáticas.' },
+        { error: 'Los pedidos no están disponibles por el momento.' },
         { status: 503 }
       )
     }

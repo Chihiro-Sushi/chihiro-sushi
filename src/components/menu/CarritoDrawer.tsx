@@ -5,6 +5,7 @@ import { X, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 import { useCarrito } from '@/context/CarritoContext'
 import { useConfiguracion } from '@/hooks/useConfiguracion'
 import { calcularDescuentoPorItem } from '@/lib/promociones'
+import { horaActualNegocio } from '@/lib/horario'
 
 import type { Promocion } from '@/types'
 
@@ -34,7 +35,7 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
 
   const descuentosPorItem = calcularDescuentoPorItem(items, promocionesActivas)
 
-  const hora = new Date().getHours()
+  const hora = horaActualNegocio()
   const servicioSuspendido = hora < 14 || config.suspensionDelivery
 
   function irACheckout() {
