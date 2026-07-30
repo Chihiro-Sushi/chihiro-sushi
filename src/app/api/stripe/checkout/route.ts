@@ -40,6 +40,30 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // Agregar recargo climático
+    if (body.surcargoClimatico > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'mxn',
+          product_data: { name: 'Recargo por clima' },
+          unit_amount: Math.round(body.surcargoClimatico * 100),
+        },
+        quantity: 1,
+      })
+    }
+
+    // Agregar recargo por condominio
+    if (body.surcargoCondominio > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'mxn',
+          product_data: { name: 'Recargo por condominio' },
+          unit_amount: Math.round(body.surcargoCondominio * 100),
+        },
+        quantity: 1,
+      })
+    }
+
     // Agregar comisión por pago con tarjeta
     if (body.comisionTarjeta > 0) {
       lineItems.push({
@@ -52,9 +76,23 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // Aplicar el descuento de promociones como cupón de Stripe, ya que
+    // price_data no admite montos negativos en los line items.
+    let discounts: { coupon: string }[] | undefined
+    if (typeof body.descuento === 'number' && body.descuento > 0) {
+      const cupon = await stripe.coupons.create({
+        amount_off: Math.round(body.descuento * 100),
+        currency: 'mxn',
+        duration: 'once',
+        name: 'Promoción aplicada',
+      })
+      discounts = [{ coupon: cupon.id }]
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
+      ...(discounts ? { discounts } : {}),
       success_url: `${BASE_URL}/pedido-confirmado?pedidoId=${ref.id}`,
       cancel_url: `${BASE_URL}/checkout`,
       metadata: { pedidoId: ref.id },
