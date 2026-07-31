@@ -141,8 +141,14 @@ export default function CheckoutPage() {
   const servicioSuspendido = hora < 14
 
   const totalSinComision = totalConDescuento + (costoEnvio ?? 0) + surcargoClimatico + surcargoCondominio
+  // Stripe cobra 3.6% + $3 MXN por transacción, más 16% de IVA sobre esa comisión,
+  // y ambos se calculan sobre el monto total cobrado (incluida la propia comisión).
+  // Se despeja la comisión a cobrar para que, tras el descuento de Stripe, quede
+  // exactamente totalSinComision como neto.
+  const TASA_STRIPE = 0.036 * 1.16
+  const FIJO_STRIPE = 3 * 1.16
   const comisionStripe = metodoPago === 'tarjeta'
-    ? Math.ceil(totalSinComision * 0.036 + 3)
+    ? Math.ceil((totalSinComision * TASA_STRIPE + FIJO_STRIPE) / (1 - TASA_STRIPE))
     : 0
   const totalFinal = totalSinComision + comisionStripe
 
