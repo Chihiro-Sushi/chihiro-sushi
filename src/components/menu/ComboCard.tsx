@@ -16,6 +16,21 @@ interface ComboConfig {
   grupos: GrupoCombo[]
 }
 
+function expandirBebidas(bebidas: MenuItem[]): string[] {
+  const opciones: string[] = []
+  for (const b of bebidas) {
+    if (b.variantes && b.variantes.length > 0) {
+      const calificador = b.nombre.trim().split(' ').pop()
+      for (const v of b.variantes) {
+        opciones.push(calificador ? `${v.nombre} ${calificador}` : `${v.nombre} (${b.nombre})`)
+      }
+    } else {
+      opciones.push(b.nombre)
+    }
+  }
+  return opciones
+}
+
 function configPorCombo(nombre: string, bebidas: string[]): ComboConfig | null {
   const ROLLOS_COMBO_2 = ['Ebi Furai Roll', 'Manchego Especial', 'Empanizado Roll']
   const ROLLOS_COMBO_3 = ['Mango Roll', 'Crispy Tuna Roll', 'California Roll']
@@ -57,10 +72,10 @@ function configPorCombo(nombre: string, bebidas: string[]): ComboConfig | null {
   }
 }
 
-export default function ComboCard({ item, bebidas }: { item: MenuItem; bebidas: string[] }) {
+export default function ComboCard({ item, bebidas }: { item: MenuItem; bebidas: MenuItem[] }) {
   const { agregar } = useCarrito()
   const { mostrarToast } = useToast()
-  const config = configPorCombo(item.nombre, bebidas)
+  const config = configPorCombo(item.nombre, expandirBebidas(bebidas))
   const [seleccion, setSeleccion] = useState<Record<string, string>>({})
   const [cantidad, setCantidad] = useState(1)
   const [agregado, setAgregado] = useState(false)

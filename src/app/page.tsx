@@ -313,7 +313,7 @@ export default function HomePage() {
                       <div className={cat.id === 'arma_tu_rollo' || cat.id === 'combos' ? '' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}>
                         {items.map((item) =>
                           cat.id === 'combos'
-                            ? <ComboCard key={item.id} item={item} bebidas={itemsPorCategoria('bebidas').map((b) => b.nombre)} />
+                            ? <ComboCard key={item.id} item={item} bebidas={itemsPorCategoria('bebidas')} />
                             : cat.id === 'arma_tu_rollo'
                               ? <ArmaRolloCard key={item.id} item={item} />
                               : <ItemCard key={item.id} item={item} />
