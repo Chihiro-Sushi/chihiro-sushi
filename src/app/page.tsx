@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer'
 import CategoriaNav from '@/components/menu/CategoriaNav'
 import ItemCard from '@/components/menu/ItemCard'
 import ArmaRolloCard from '@/components/menu/ArmaRolloCard'
+import ComboCard from '@/components/menu/ComboCard'
 import { useMenu } from '@/hooks/useMenu'
 import { useCarrito } from '@/context/CarritoContext'
 import { useConfiguracion } from '@/hooks/useConfiguracion'
@@ -309,11 +310,13 @@ export default function HomePage() {
                           </span>
                         </div>
                       )}
-                      <div className={cat.id === 'arma_tu_rollo' ? '' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}>
+                      <div className={cat.id === 'arma_tu_rollo' || cat.id === 'combos' ? '' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'}>
                         {items.map((item) =>
-                          cat.id === 'arma_tu_rollo'
-                            ? <ArmaRolloCard key={item.id} item={item} />
-                            : <ItemCard key={item.id} item={item} />
+                          cat.id === 'combos'
+                            ? <ComboCard key={item.id} item={item} bebidas={itemsPorCategoria('bebidas').map((b) => b.nombre)} />
+                            : cat.id === 'arma_tu_rollo'
+                              ? <ArmaRolloCard key={item.id} item={item} />
+                              : <ItemCard key={item.id} item={item} />
                         )}
                       </div>
                     </div>
