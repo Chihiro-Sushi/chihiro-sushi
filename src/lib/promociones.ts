@@ -77,8 +77,9 @@ export function calcularDescuentoPorItem(
           }
         }
       }
-      unidades.sort((a, b) => b.precio - a.precio)
-      for (let i = 2; i < unidades.length; i += 3) {
+      const numGratis = Math.floor(unidades.length / 3)
+      unidades.sort((a, b) => a.precio - b.precio)
+      for (let i = 0; i < numGratis; i++) {
         const { clave, precio } = unidades[i]
         const prev = resultado.get(clave)
         resultado.set(clave, {
@@ -96,8 +97,9 @@ export function calcularDescuentoPorItem(
           }
         }
       }
-      unidades.sort((a, b) => b.precio - a.precio)
-      for (let i = 1; i < unidades.length; i += 2) {
+      const numGratis = Math.floor(unidades.length / 2)
+      unidades.sort((a, b) => a.precio - b.precio)
+      for (let i = 0; i < numGratis; i++) {
         const { clave, precio } = unidades[i]
         const prev = resultado.get(clave)
         resultado.set(clave, {
@@ -149,8 +151,9 @@ export function calcularDescuento(items: ItemCarrito[], promociones: Promocion[]
           }
         }
       }
-      unidades.sort((a, b) => b - a)
-      for (let i = 2; i < unidades.length; i += 3) {
+      const numGratis = Math.floor(unidades.length / 3)
+      unidades.sort((a, b) => a - b)
+      for (let i = 0; i < numGratis; i++) {
         descuento += unidades[i]
       }
     } else if (promo.tipo === '2x1') {
@@ -162,8 +165,9 @@ export function calcularDescuento(items: ItemCarrito[], promociones: Promocion[]
           }
         }
       }
-      unidades.sort((a, b) => b - a)
-      for (let i = 1; i < unidades.length; i += 2) {
+      const numGratis = Math.floor(unidades.length / 2)
+      unidades.sort((a, b) => a - b)
+      for (let i = 0; i < numGratis; i++) {
         descuento += unidades[i]
       }
     } else if (promo.tipo === 'porcentaje' && promo.valor) {
