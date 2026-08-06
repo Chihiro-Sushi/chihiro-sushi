@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
-import { horaActualNegocio } from '@/lib/horario'
+import { horaActualNegocio, esMiercolesNegocio } from '@/lib/horario'
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,6 +9,13 @@ export async function POST(req: NextRequest) {
     if (hora < 14) {
       return NextResponse.json(
         { error: 'El servicio no está disponible entre las 12:00 am y las 2:00 pm.' },
+        { status: 503 }
+      )
+    }
+
+    if (esMiercolesNegocio()) {
+      return NextResponse.json(
+        { error: 'No hay servicio a domicilio los miércoles.' },
         { status: 503 }
       )
     }

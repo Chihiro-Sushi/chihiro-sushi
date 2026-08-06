@@ -5,7 +5,7 @@ import { X, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 import { useCarrito } from '@/context/CarritoContext'
 import { useConfiguracion } from '@/hooks/useConfiguracion'
 import { calcularDescuentoPorItem } from '@/lib/promociones'
-import { horaActualNegocio } from '@/lib/horario'
+import { horaActualNegocio, esMiercolesNegocio } from '@/lib/horario'
 
 import type { Promocion } from '@/types'
 
@@ -36,7 +36,8 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
   const descuentosPorItem = calcularDescuentoPorItem(items, promocionesActivas)
 
   const hora = horaActualNegocio()
-  const servicioSuspendido = hora < 14 || config.suspensionDelivery
+  const miercoles = esMiercolesNegocio()
+  const servicioSuspendido = hora < 14 || config.suspensionDelivery || miercoles
 
   function irACheckout() {
     onCerrar()
@@ -177,6 +178,8 @@ export default function CarritoDrawer({ abierto, onCerrar }: Props) {
                 style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.25)', color: '#F87171' }}>
                 {config.suspensionDelivery
                   ? 'Los pedidos no están disponibles por el momento'
+                  : miercoles
+                  ? 'No hay servicio a domicilio los miércoles'
                   : 'Servicio disponible a partir de las 2:00 pm'}
               </div>
             )}

@@ -7,7 +7,7 @@ import Navbar from '@/components/layout/Navbar'
 import MapaPicker from '@/components/checkout/MapaPicker'
 import { ShoppingBag, CreditCard, Banknote, Loader2, AlertCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { horaActualNegocio } from '@/lib/horario'
+import { horaActualNegocio, esMiercolesNegocio } from '@/lib/horario'
 
 interface CondominioInfo {
   nombre: string
@@ -138,7 +138,8 @@ export default function CheckoutPage() {
   }, [])
 
   const hora = horaActualNegocio()
-  const servicioSuspendido = hora < 14
+  const miercoles = esMiercolesNegocio()
+  const servicioSuspendido = hora < 14 || miercoles
 
   const totalSinComision = totalConDescuento + (costoEnvio ?? 0) + surcargoClimatico + surcargoCondominio
   // Stripe cobra 3.6% + $3 MXN por transacción, más 16% de IVA sobre esa comisión,
@@ -156,7 +157,7 @@ export default function CheckoutPage() {
     e.preventDefault()
     setError('')
 
-    if (servicioSuspendido) { setError('El servicio no está disponible antes de las 2:00 pm'); return }
+    if (servicioSuspendido) { setError(miercoles ? 'No hay servicio a domicilio los miércoles' : 'El servicio no está disponible antes de las 2:00 pm'); return }
     if (!nombre.trim()) { setError('Ingresa tu nombre'); return }
     const soloDigitos = telefono.replace(/\D/g, '').replace(/^52/, '')
     if (soloDigitos.length !== 10) { setError('Ingresa un número de WhatsApp válido (10 dígitos)'); return }
@@ -262,7 +263,11 @@ export default function CheckoutPage() {
           <div className="flex items-center gap-3 rounded-xl p-4 mb-6 text-sm"
             style={{ backgroundColor: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.3)', color: '#F87171' }}>
             <AlertCircle size={18} className="shrink-0" />
-            <span>El servicio de entrega está disponible a partir de las <strong>2:00 pm</strong>. Puedes preparar tu pedido y confirmarlo después.</span>
+            <span>
+              {miercoles
+                ? 'No hay servicio a domicilio los miércoles. Puedes preparar tu pedido y confirmarlo otro día.'
+                : <>El servicio de entrega está disponible a partir de las <strong>2:00 pm</strong>. Puedes preparar tu pedido y confirmarlo después.</>}
+            </span>
           </div>
         )}
 

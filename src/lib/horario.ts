@@ -10,3 +10,12 @@ export function horaActualNegocio(): number {
   })
   return parseInt(formatter.format(new Date()), 10)
 }
+
+// true si hoy es miércoles en la zona horaria del negocio (día sin servicio a domicilio)
+export function esMiercolesNegocio(): boolean {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: ZONA_NEGOCIO,
+    weekday: 'short',
+  })
+  return formatter.format(new Date()) === 'Wed'
+}

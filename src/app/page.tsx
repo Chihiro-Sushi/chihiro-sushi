@@ -12,6 +12,7 @@ import ComboCard from '@/components/menu/ComboCard'
 import { useMenu } from '@/hooks/useMenu'
 import { useCarrito } from '@/context/CarritoContext'
 import { useConfiguracion } from '@/hooks/useConfiguracion'
+import { esMiercolesNegocio } from '@/lib/horario'
 import type { Categoria, Promocion, MenuItem } from '@/types'
 
 const HERO_IMAGES = [
@@ -83,6 +84,7 @@ export default function HomePage() {
   const { categorias, itemsPorCategoria, cargando, error } = useMenu()
   const { promocionesActivas } = useCarrito()
   const config = useConfiguracion()
+  const miercoles = esMiercolesNegocio()
   const [categoriaActiva, setCategoriaActiva] = useState<string>('')
   const catRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -152,7 +154,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {config.suspensionDelivery && (
+      {(config.suspensionDelivery || miercoles) && (
         <div className="w-full py-10 px-4 text-center"
           style={{
             background: 'linear-gradient(135deg, #7B0000 0%, #C0392B 50%, #7B0000 100%)',
@@ -161,10 +163,14 @@ export default function HomePage() {
           <div className="max-w-lg mx-auto">
             <div style={{ fontSize: '3.5rem', lineHeight: 1, marginBottom: '0.75rem' }}>🍣</div>
             <h2 className="text-2xl font-black mb-2" style={{ color: '#F5F5F5', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-              Por el momento esta plataforma solo funciona para visualizar el menú.
+              {config.suspensionDelivery
+                ? 'Por el momento esta plataforma solo funciona para visualizar el menú.'
+                : 'Hoy miércoles no hay servicio a domicilio.'}
             </h2>
             <p className="text-sm leading-relaxed" style={{ color: 'rgba(245,245,245,0.85)' }}>
-              Puedes navegar en ella. Próximamente disponible para ordenar desde aquí.
+              {config.suspensionDelivery
+                ? 'Puedes navegar en ella. Próximamente disponible para ordenar desde aquí.'
+                : 'Puedes navegar el menú con calma. Regresamos mañana jueves con normalidad.'}
             </p>
           </div>
         </div>

@@ -2,11 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
+import { horaActualNegocio, esMiercolesNegocio } from '@/lib/horario'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
 
 export async function POST(req: NextRequest) {
   try {
+    const hora = horaActualNegocio()
+    if (hora < 14) {
+      return NextResponse.json(
+        { error: 'El servicio no está disponible entre las 12:00 am y las 2:00 pm.' },
+        { status: 503 }
+      )
+    }
+
+    if (esMiercolesNegocio()) {
+      return NextResponse.json(
+        { error: 'No hay servicio a domicilio los miércoles.' },
+        { status: 503 }
+      )
+    }
+
+    const configSnap = await adminDb.collection('configuracion').doc('sitio').get()
+    if (configSnap.exists && configSnap.data()?.suspensionDelivery) {
+      return NextResponse.json(
+        { error: 'Los pedidos no están disponibles por el momento.' },
+        { status: 503 }
+      )
+    }
+
     const body = await req.json()
 
     // Guardar pedido en Firestore con estado temporal hasta confirmar pago
