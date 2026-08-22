@@ -46,7 +46,7 @@ const ITEMS = [
   { categoriaId: 'entradas', nombre: 'Kushiages — Camarón-Philadelphia', descripcion: 'Banderillas empanizadas con panko (2 piezas)', precio: 85, disponible: true, orden: 4 },
   { categoriaId: 'entradas', nombre: 'Kushiages — Plátano-Manchego', descripcion: 'Banderillas empanizadas con panko (2 piezas)', precio: 70, disponible: true, orden: 5 },
   { categoriaId: 'entradas', nombre: 'Temaki', descripcion: 'Cono de alga nori, relleno de arroz, pepino, aguacate y proteína a elección', precio: 90, disponible: true, orden: 6, variantes: [{ nombre: 'Atún', precioExtra: 0 }, { nombre: 'Salmón', precioExtra: 0 }, { nombre: 'Camarón', precioExtra: 0 }, { nombre: 'Kanikama', precioExtra: 0 }, { nombre: 'Anguila', precioExtra: 15 }] },
-  { categoriaId: 'entradas', nombre: 'Nigiri', descripcion: 'Proteína sobre arroz (2 piezas)', precio: 55, disponible: true, orden: 7, variantes: [{ nombre: 'Atún', precioExtra: 0 }, { nombre: 'Salmón', precioExtra: 0 }, { nombre: 'Anguila', precioExtra: 10 }] },
+  { categoriaId: 'entradas', nombre: 'Nigiri', descripcion: 'Proteína sobre arroz (1 pieza)', precio: 55, disponible: true, orden: 7, variantes: [{ nombre: 'Atún', precioExtra: 0 }, { nombre: 'Salmón', precioExtra: 0 }, { nombre: 'Anguila', precioExtra: 10 }] },
   { categoriaId: 'entradas', nombre: 'Gyosas', descripcion: 'Dumplings al vapor rellenos con deliciosa carne de res preparada (6 piezas)', precio: 130, disponible: true, orden: 8 },
 
   // ── SOPAS ─────────────────────────────────────────────────────────────────
