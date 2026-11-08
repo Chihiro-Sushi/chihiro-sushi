@@ -62,11 +62,15 @@ export default function MapaPicker({ onChange, queryExterna, coordenadasExternas
         zoomControl: true,
       })
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution:
-          '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+      // CARTO ahora exige API key; usamos teselas de OpenStreetMap y las oscurecemos con CSS
+      const capa = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
       }).addTo(map)
+      const contenedor = capa.getContainer()
+      if (contenedor) {
+        contenedor.style.filter = 'invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9)'
+      }
 
       mapInstanceRef.current = map
       if (mounted) setCargandoMapa(false)
